@@ -1,0 +1,28 @@
+# generic
+tmp/
+*.log
+.cache
+local.*
+
+# macosx
+*.DS_Store
+
+# java
+*.class
+*.jar
+*.war
+*.ear
+
+# idea
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# compilation output
+target/
+project/target/
+project/project/target/
+client/target/
+client/src/target/
+client/src/test/scala/com/workday/*/unit/target
