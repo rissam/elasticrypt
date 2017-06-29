@@ -6,50 +6,54 @@ import com.workday.elasticrypt.KeyProvider
 
 /**
   * Implementation of FileHeader that appends an HMAC hashed text to validate that the proper key is being used
-  * to decrypt the file
+  * to decrypt the file.
   *
-  * @param raf
+  * @param raf for access to the file
+  * @param keyProvider provides the needed key
+  * @param keyId used to retrieve the key using the KeyProvider
   */
-
 class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: String) extends FileHeader(raf) {
 
   // scalastyle:off null
-  var keyIdBytes: Array[Byte] = null // TODO: move to FileHeader interface
-  private var plainTextBytes: Array[Byte] = null
   private var hmacBytes: Array[Byte] = null
+  private var plainTextBytes: Array[Byte] = null
   // scalastyle:on null
 
+  /** Writes the file header. */
   def writeHeader(): Long = {
     // Write keyId
-    val keyIdBytes: Array[Byte] = keyId.getBytes
+    keyIdBytes = keyId.getBytes
     writeByteArray(keyIdBytes)
 
     // Write plaintext bytes
     val numBytes = 8
-    val plainTextBytes: Array[Byte] = HmacUtil.generateRandomBytes(numBytes)
+    plainTextBytes = HmacUtil.generateRandomBytes(numBytes)
     writeByteArray(plainTextBytes)
 
     // Write HMAC bytes
-    val hmacBytes: Array[Byte] = HmacUtil.hmacValue(plainTextBytes, keyProvider.getKey(keyId))
+    hmacBytes = HmacUtil.hmacValue(plainTextBytes, keyProvider.getKey(keyId))
     writeByteArray(hmacBytes)
 
     // return the current file pointer (i.e. header offset)
     raf.getFilePointer
   }
 
+  /** Writes the byte array. */
   private def writeByteArray(byteArray: Array[Byte]) {
     raf.writeInt(byteArray.length)
     raf.write(byteArray)
   }
 
+  /** Reads the file header. */
   def readHeader(): Unit = {
     raf.seek(0)
 
-    keyIdBytes = readBytesFromCurrentFilePointer // TODO: expose these
+    keyIdBytes = readBytesFromCurrentFilePointer
     plainTextBytes = readBytesFromCurrentFilePointer
     hmacBytes = readBytesFromCurrentFilePointer
   }
 
+  /** Read current bytes. */
   @throws[java.io.IOException]
   private def readBytesFromCurrentFilePointer: Array[Byte] = {
     /* Read the length of the following byte array in the file.*/

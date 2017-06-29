@@ -34,12 +34,8 @@ class EncryptedTranslog @Inject()(shardId: ShardId,
   }
 
   override def translogStreamFor(translogFile: File): TranslogStream = {
-    new EncryptedTranslogStream(pageSize, component.keyProvider)
+    new EncryptedTranslogStream(pageSize, component.keyProvider, keyId)
   }
 
 }
-
-//case class LazyKey(keyId: String, keyProvider: KeyProvider) {
-//  lazy val key: SecretKeySpec = keyProvider.getKey(keyId)
-//}
 

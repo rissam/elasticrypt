@@ -8,7 +8,8 @@ import java.nio.{ByteBuffer, MappedByteBuffer}
 import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.util.{AESReader, AESWriter, HmacFileHeader}
 
-class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, keyId: String) extends FileChannel {
+class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, keyId: String)
+  extends FileChannel {
   /**
     * Two issues here:
     * (1) AESReader should only be instantiated for existent files - maybe there should be an open method?
@@ -22,8 +23,8 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
   private[translog] lazy val reader = new AESReader(name, raf, pageSize, keyProvider, keyId, fileHeader) // TODO: handle in reader here
   private[translog] lazy val writer = new AESWriter(name, raf, pageSize, keyProvider, keyId, fileHeader)
 
-  def this(file: File, pageSize: Int, keyProvider: KeyProvider) =
-    this(file.getName(), new RandomAccessFile(file, "rw"), pageSize, keyProvider)
+  def this(file: File, pageSize: Int, keyProvider: KeyProvider, keyId: String) =
+    this(file.getName(), new RandomAccessFile(file, "rw"), pageSize, keyProvider, keyId)
 
   override def tryLock(position: Long, size: Long, shared: Boolean): FileLock =
     throw new UnsupportedOperationException
