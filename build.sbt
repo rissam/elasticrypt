@@ -1,3 +1,6 @@
+import sbt.Keys._
+import sbt._
+
 lazy val commonSettings = Seq(
   name := "elasticsearch-encryption-plug-in",
   organization := "com.workday",
