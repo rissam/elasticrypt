@@ -8,6 +8,10 @@ import java.nio.{ByteBuffer, MappedByteBuffer}
 import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.util.{AESReader, AESWriter, HmacFileHeader}
 
+/**
+  * Extension of java.nio.channels.FileChannel that instantiates an AESReader and AESWriter to encrypt all reads and writes.
+  * Utilized in EncryptedRafReference and EncryptedTranslogStream.
+  */
 class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, keyId: String)
   extends FileChannel {
   /**
@@ -19,8 +23,8 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
     * Simply using lazy here seems too easy.
     */
 
-  private[translog] lazy val fileHeader = new HmacFileHeader(raf, keyProvider, keyId) // TODO: how to abstract here since uses raf? make singleton?
-  private[translog] lazy val reader = new AESReader(name, raf, pageSize, keyProvider, keyId, fileHeader) // TODO: handle in reader here
+  private[translog] lazy val fileHeader = new HmacFileHeader(raf, keyProvider, keyId)
+  private[translog] lazy val reader = new AESReader(name, raf, pageSize, keyProvider, keyId, fileHeader)
   private[translog] lazy val writer = new AESWriter(name, raf, pageSize, keyProvider, keyId, fileHeader)
 
   def this(file: File, pageSize: Int, keyProvider: KeyProvider, keyId: String) =

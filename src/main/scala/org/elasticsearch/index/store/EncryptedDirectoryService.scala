@@ -10,6 +10,10 @@ import org.elasticsearch.index.settings.IndexSettings
 import org.elasticsearch.index.shard.ShardId
 import org.elasticsearch.index.store.fs.FsDirectoryService
 
+/**
+  * Extends org.elasticsearch.index.store.fs.FsDirectoryService and overrides newFSDirectory().
+  * Returns an EncryptedDirectory.
+  */
 class EncryptedDirectoryService @Inject() (shardId: ShardId,
                                            @IndexSettings indexSettings: Settings,
                                            indexStore: EncryptedIndexStore,

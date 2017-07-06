@@ -13,6 +13,12 @@ import org.elasticsearch.index.store.{IndexStore, NodeKeyProviderComponent}
 import org.elasticsearch.index.translog.fs.FsTranslog
 import org.elasticsearch.index.translog.{EncryptedTranslogStream, Translog, TranslogStream}
 
+/**
+  * Extends org.elasticsearch.index.translog.fs.FsTranslog and overrides createRafReference() and translogStreamFor()
+  * to return an EncryptedRafReference and EncryptedTranslogStream respectively.
+  * Both createRafReference() and translogStreamFor() are small methods that we added to FsTranslog
+  * so that they could be overriden here.
+  */
 class EncryptedTranslog @Inject()(shardId: ShardId,
                                   @IndexSettings indexSettings: Settings,
                                   indexSettingsService: IndexSettingsService,

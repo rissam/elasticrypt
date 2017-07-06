@@ -16,9 +16,12 @@ import org.elasticsearch.index.shard.ShardId
 
 
 /**
-  * Much of this code is based on the existing implementation in NIOFSDirectory
+  * This class extends org.apache.lucene.store.NIOFSDirectory and overrides createOutput() and openInput()
+  * to include encryption and decryption via AESIndexOutput and AESIndexInput respectively. Code is based on the existing implementation in NIOFSDirectory:
+  * Much of this code is based on the existing implementation in NIOFSDirectory.
   *
-  * https://www.elastic.co/guide/en/elasticsearch/reference/1.7/index-modules.html
+  * https://www.elastic.co/guide/en/elasticsearch/reference/1.7/index-modules-store.html#default_fs
+  * https://github.com/apache/lucene-solr/blob/master/lucene/core/src/java/org/apache/lucene/store/NIOFSDirectory.java
   */
 class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId, esClient: Client, component: NodeKeyProviderComponent)
   extends NIOFSDirectory(path, lockFactory) {
@@ -68,6 +71,7 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     }
   }
 
+  /** Checks for the metadata file. */
   private def isSegmentMetadataFile(fileName: String): Boolean = {
     fileName == IndexFileNames.SEGMENTS_GEN ||
       fileName.startsWith(IndexFileNames.SEGMENTS + "_") ||
@@ -75,10 +79,12 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
       fileName.endsWith("." + Lucene46SegmentInfoFormat.SI_EXTENSION)
   }
 
+  /** Creates an AES Writer. */
   protected[store] def createAESWriter(path: File, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, fileHeader: FileHeader) = {
     new AESWriter(path.getName, raf, pageSize, keyProvider, keyId, fileHeader)
   }
 
+  /** Creates an AES Reader. */
   protected[store] def createAESReader(path: File, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, fileHeader: FileHeader) = {
     new AESReader(path.getName, raf, pageSize, keyProvider, keyId, fileHeader)
   }

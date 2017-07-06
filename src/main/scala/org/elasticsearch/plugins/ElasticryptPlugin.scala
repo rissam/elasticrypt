@@ -6,6 +6,9 @@ import java.util.Collections
 import com.workday.elasticrypt.modules.EncryptedNodeModule
 import org.elasticsearch.common.inject.Module
 
+/**
+  * Entry point for the plugin. Defines plugin name (Elasticrypt) and description.
+  */
 class ElasticryptPlugin extends AbstractPlugin {
   override def name(): String = "elasticrypt"
 

@@ -5,12 +5,8 @@ import java.io.RandomAccessFile
 import com.workday.elasticrypt.KeyProvider
 
 /**
-  * Implementation of FileHeader that appends an HMAC hashed text to validate that the proper key is being used
-  * to decrypt the file.
-  *
-  * @param raf for access to the file
-  * @param keyProvider provides the needed key
-  * @param keyId used to retrieve the key using the KeyProvider
+  * Implementation of the FileHeader interface that adds a MAC hash that is
+  * used to verify that the correct key is being used to decrypt a file.
   */
 class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: String) extends FileHeader(raf) {
 
@@ -19,7 +15,9 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: Str
   private var plainTextBytes: Array[Byte] = null
   // scalastyle:on null
 
-  /** Writes the file header. */
+  /**
+    * Writes the file header.
+    */
   def writeHeader(): Long = {
     // Write keyId
     keyIdBytes = keyId.getBytes
@@ -38,13 +36,17 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: Str
     raf.getFilePointer
   }
 
-  /** Writes the byte array. */
+  /**
+    * Writes the byte array.
+    */
   private def writeByteArray(byteArray: Array[Byte]) {
     raf.writeInt(byteArray.length)
     raf.write(byteArray)
   }
 
-  /** Reads the file header. */
+  /**
+    * Reads the file header.
+    */
   def readHeader(): Unit = {
     raf.seek(0)
 
@@ -53,7 +55,9 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: Str
     hmacBytes = readBytesFromCurrentFilePointer
   }
 
-  /** Read current bytes. */
+  /**
+    * Read current bytes.
+    */
   @throws[java.io.IOException]
   private def readBytesFromCurrentFilePointer: Array[Byte] = {
     /* Read the length of the following byte array in the file.*/

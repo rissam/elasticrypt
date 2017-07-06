@@ -5,17 +5,20 @@ import java.io.IOException
 import org.apache.lucene.store.{BufferedIndexInput, IOContext, IndexInput}
 import org.apache.lucene.util.AESReader
 
-// Largely taken from NIOFSIndexInput
+/**
+  * Extension of org.apache.lucene.store.BufferedIndexInput that uses an instance of AESReader
+  * to perform reads on encrypted files. Utilized in EncryptedDirectory on openInput().
+  */
 // scalastyle:off no.clone
 final private[store] class AESIndexInput(resourceDesc: String, bufferSize: Int) extends BufferedIndexInput(resourceDesc, bufferSize) {
 
   private[this] var reader: AESReader = _
 
-  /** is this instance a clone and hence does not own the file to close it */
+  /** Whether this instance is a clone and hence cannot own the file */
   private[store] var isClone: Boolean = false
-  /** start offset: non-zero in the slice case */
+  /** Start offset: non-zero in the slice case */
   final protected var off: Long = 0L
-  /** end offset (start+length) */
+  /** End offset: start + length */
   final protected var end: Long = 0L
 
   def this(resourceDesc: String, reader: AESReader, context: IOContext) {

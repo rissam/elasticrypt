@@ -15,33 +15,31 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * AESWriter is responsible for writing AES encrypted files to disk.
- * This class will abstract the encryption and decryption process from the user.
- * Encrypted file contains:
- *  1. A file header containing: TODO
- *  2. Initialization Vector per file page is same size as the BLOCKSIZE constant = 16 bytes.
- *  3. Encrypted Page of size (page_size * BLOCKSIZE) bytes where page_size is provided by the user.
- *     The last page to be encrypted and written to disk has some padding added to it if the last block is not
- *     exactly 16  bytes long. Therefore, number of encrypted bytes of data might be more than actual data bytes
- *     in the file.
- *
- * Sample of the physical encrypted file where unencrypted virtual file is 2017(1024 + 993) bytes long and
- * Page size = 1024 bytes:
- *
- * header: TODO
- * IV1(16 bytes)
- * 1024 bytes of encrypted Text
- * IV2(16 bytes)
- * 1008 bytes of encrypted Text(993 bytes of actual data + 15 bytes of padding to complete a 16 byte last block.)
- *
- * <br />
- * All rights reserved by the IIT IR Lab. (c)2009 Jordan Wilberding(jordan@ir.iit.edu)  and Jay Mundrawala(mundra@ir.iit.edu)
- *
- * @author Jay Mundrawala
- * @author Jordan Wilberding
- */
-
+/** AESWriter is responsible for writing AES encrypted files to disk.
+  * This class will abstract the encryption and decryption process from the user.
+  * Encrypted file contains:
+  *  1. A file header containing: TODO
+  *  2. Initialization Vector per file page is same size as the BLOCKSIZE constant = 16 bytes.
+  *  3. Encrypted Page of size (page_size * BLOCKSIZE) bytes where page_size is provided by the user.
+  *     The last page to be encrypted and written to disk has some padding added to it if the last block is not
+  *     exactly 16  bytes long. Therefore, number of encrypted bytes of data might be more than actual data bytes
+  *     in the file.
+  *
+  * Sample of the physical encrypted file where unencrypted virtual file is 2017(1024 + 993) bytes long and
+  * Page size = 1024 bytes:
+  *
+  * Header: TODO
+  * IV1(16 bytes)
+  * 1024 bytes of encrypted Text
+  * IV2(16 bytes)
+  * 1008 bytes of encrypted Text(993 bytes of actual data + 15 bytes of padding to complete a 16 byte last block.)
+  *
+  * <br />
+  * All rights reserved by the IIT IR Lab. (c)2009 Jordan Wilberding(jordan@ir.iit.edu) and Jay Mundrawala(mundra@ir.iit.edu)
+  *
+  * @author Jay Mundrawala
+  * @author Jordan Wilberding
+  */
 public class AESWriter
 {
     /* AES using 16 byte block sizes */
@@ -103,7 +101,7 @@ public class AESWriter
     private boolean modified;
     /* File name */
     private final String name;
-
+    /* Whether file header is written */
     private Boolean headerWritten = false;
     private final KeyProvider keyProvider;
 
@@ -115,12 +113,15 @@ public class AESWriter
     private final ESLogger logger = ESLoggerFactory.getRootLogger();
 
     /**
-     * Creates an encrypted random access file that uses the AES encryption algorithm in CBC mode.
-     * For translog
-     * @param raf File to create.
-     * @param page_size Number of 16-byte blocks per page.
-     * @param keyProvider Encryption Key information getter
-     */
+      * @constructor
+      * Creates an encrypted random access file that uses the AES encryption algorithm in CBC mode.
+      * @param name File name.
+      * @param raf File to create.
+      * @param page_size Number of 16-byte blocks per page.
+      * @param keyProvider Encryption Key information getter.
+      * @param keyId
+      * @param fileHeader
+      */
     public AESWriter(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String keyId, FileHeader fileHeader) throws Exception
     {
         try {
@@ -160,11 +161,11 @@ public class AESWriter
     }
 
     /**
-     * Write the file header to the beginning of the encrypted file.
-     * File Header contains:
-     *  TODO
-     * @throws IOException
-     */
+      * Write the file header to the beginning of the encrypted file.
+      * File Header contains:
+      *  TODO
+      * @throws IOException
+      */
     private synchronized void writeFileHeaderLazy() throws
             IOException,
             InvalidAlgorithmParameterException,
@@ -191,17 +192,17 @@ public class AESWriter
     }
 
     /**
-     * Generates a random initialization vector.
-     * @return a randomly generated IV
-     */
+      * Generates a random initialization vector.
+      * @return a randomly generated IV
+      */
     private IvParameterSpec generateIV(){
         return new IvParameterSpec(ivgen.generateKey().getEncoded());
     }
 
     /**
-     * Initialize the encryption and decryption ciphers.
-     * @param ivps The initialization vector to use or null. If null, an IV will be randomly generated.
-     */
+      * Initialize the encryption and decryption ciphers.
+      * @param ivps The initialization vector to use or null. If null, an IV will be randomly generated.
+      */
     private void initCiphers(IvParameterSpec ivps) throws InvalidKeyException,
             InvalidAlgorithmParameterException
     {
@@ -217,9 +218,9 @@ public class AESWriter
     }
 
     /**
-     * Encrypts and flushes all remaining data from the buffer cache to disk, pads the file,
-     * and then closes the underlying file stream.
-     */
+      * Encrypts and flushes all remaining data from the buffer cache to disk, pads the file,
+      * and then closes the underlying file stream.
+      */
     public void close() throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -238,8 +239,8 @@ public class AESWriter
     }
 
     /**
-     * Writes any data in the buffer to disk with any additional padding needed.
-     */
+      * Writes any data in the buffer to disk with any additional padding needed.
+      */
     public void flush() throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -252,27 +253,27 @@ public class AESWriter
     }
 
     /**
-     * Returns the file position in the encrypted file without the accounting for IVs and File header.
-     * @return Returns the current position in this file, where the next write will occur.
-     */
+      * Returns the file position in the encrypted file without the accounting for IVs and File header.
+      * @return Returns the current position in this file, where the next write will occur.
+      */
     public long getFilePointer() throws IOException
     {
         return this.cur_fp;
     }
 
     /**
-     * The number of bytes in the file without (IV/page and File Header).
-     * @return the size off the file
-     */
+      * The number of bytes in the file without (IV/page and File Header).
+      * @return the size off the file
+      */
     public long length() throws IOException
     {
         return end;
     }
 
     /**
-     * Sets the position where the next write will occurs.
-     * @param pos the position where the next write will occur
-     */
+      * Sets the position where the next write will occurs.
+      * @param pos the position where the next write will occur
+      */
     public void seek(long pos) throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -285,10 +286,10 @@ public class AESWriter
     }
 
     /**
-     * Sets the virtual position(cur_fp) where the next write will occurs and moves the physical encrypted
-     * file pointer to the correct position.
-     * @param pos the position where the next write will occur
-     */
+      * Sets the virtual position(cur_fp) where the next write will occurs and moves the physical encrypted
+      * file pointer to the correct position.
+      * @param pos the position where the next write will occur
+      */
     private void _seek(long pos) throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -326,24 +327,24 @@ public class AESWriter
     }
 
     /**
-     * Calls this.raf.seek and adds the header_offset.  The only time this shouldn't be used over this.raf.seek is
-     * if you actually want to read the header.
-     * @param pos the file position to seek to
-     * @throws IOException
-     */
+      * Calls this.raf.seek and adds the header_offset.  The only time this shouldn't be used over this.raf.seek is
+      * if you actually want to read the header.
+      * @param pos the file position to seek to
+      * @throws IOException
+      */
     private void offset_seek(long pos) throws IOException
     {
         this.raf.seek(pos + this.header_offset);
     }
 
    /**
-    * Writes the given array of bytes to the file.
-    * 1. Fills the cache buffer with unencrypted data from the input buffer.
-    * 2. Once the cache buffer is full, the data in the cache buffer is encrypted and written to disk.
-    * @param b array of bytes to write
-    * @param off offset in b to start
-    * @param len number of bytes to write
-    */
+     * Writes the given array of bytes to the file.
+     * 1. Fills the cache buffer with unencrypted data from the input buffer.
+     * 2. Once the cache buffer is full, the data in the cache buffer is encrypted and written to disk.
+     * @param b array of bytes to write
+     * @param off offset in b to start
+     * @param len number of bytes to write
+     */
     public void write(byte[] b, int off, int len) throws IOException,
            javax.crypto.ShortBufferException,
            javax.crypto.IllegalBlockSizeException,
@@ -354,6 +355,18 @@ public class AESWriter
         write(bb);
     }
 
+    /**
+      * TODO
+      * @param b
+      * @return
+      * @throws IOException
+      * @throws javax.crypto.ShortBufferException
+      * @throws javax.crypto.IllegalBlockSizeException
+      * @throws InvalidKeyException
+      * @throws InvalidAlgorithmParameterException
+      * @throws javax.crypto.BadPaddingException
+      * @throws NoSuchAlgorithmException
+      */
     public int write(ByteBuffer b) throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -396,6 +409,16 @@ public class AESWriter
         return bytesCopied;
     }
 
+    /**
+      * TODO
+      * @throws IOException
+      * @throws javax.crypto.ShortBufferException
+      * @throws javax.crypto.IllegalBlockSizeException
+      * @throws javax.crypto.BadPaddingException
+      * @throws InvalidKeyException
+      * @throws InvalidAlgorithmParameterException
+      * @throws NoSuchAlgorithmException
+      */
     private void writePage() throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -405,14 +428,14 @@ public class AESWriter
     }
 
     /**
-     * Writes the internal buffer cache to disk.
-     * 1. Write iv.
-     * 2. Buffer Cache:
-     *       i. Determine if last block in the buffer needs to be padded and pad it.
-     *      ii. Encrypt data in the buffer with needed padding and write to disk.
-     * @param flush_pad if set to true, padding is guaranteed to be added. Otherwise, padding will only be added if
-     * there are not enough bytes to make a complete block.
-     */
+      * Writes the internal buffer cache to disk.
+      * 1. Write iv.
+      * 2. Buffer Cache:
+      *       i. Determine if last block in the buffer needs to be padded and pad it.
+      *      ii. Encrypt data in the buffer with needed padding and write to disk.
+      * @param flush_pad if set to true, padding is guaranteed to be added. Otherwise, padding will only be added if
+      * there are not enough bytes to make a complete block.
+      */
     private void writePage(boolean flush_pad, boolean isFileClose) throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -479,9 +502,10 @@ public class AESWriter
     }
 
     /**
-     * Reads a page from the underlying file and initialize the ciphers.
-     * If there is no page to read, the ciphers get initialized
-     * with a random IV. */
+      * Reads a page from the underlying file and initialize the ciphers.
+      * If there is no page to read, the ciphers get initialized
+      * with a random IV.
+      */
     private void fillBuffer() throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -543,13 +567,13 @@ public class AESWriter
     }
 
     /**
-     * Set the size of the file. To use this method, it must be called immediately after this object is created.
-     * Also, when this method is called, the file length may not be extended.
-     * 1. Sets the IV vector for each page and inserts padding.
-     * 2. Seeks to the beginning of file and sets the end of the file to newLen and cur_fp to 0.
-     * 3. Buffer Cache: Sets the buf pos and start to 0.
-     * @param newLen The new size of the file.
-     */
+      * Set the size of the file. To use this method, it must be called immediately after this object is created.
+      * Also, when this method is called, the file length may not be extended.
+      * 1. Sets the IV vector for each page and inserts padding.
+      * 2. Seeks to the beginning of file and sets the end of the file to newLen and cur_fp to 0.
+      * 3. Buffer Cache: Sets the buf pos and start to 0.
+      * @param newLen The new size of the file.
+      */
     public void setLength(long newLen) throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.BadPaddingException,
@@ -619,20 +643,20 @@ public class AESWriter
     }
 
     /**
-     * Calculates the number of init vectors preceding a given block. The block of virtual address m
-     * is determined by m/BLOCKSIZE.
-     * @param block how many IVs are found before this block
-     * @return number of IVs found before block
-     */
+      * Calculates the number of init vectors preceding a given block. The block of virtual address m
+      * is determined by m/BLOCKSIZE.
+      * @param block how many IVs are found before this block
+      * @return number of IVs found before block
+      */
     private long numPageIVBlocksAt(long block){
         return (block/((long)page_size)) +1;
     }
 
     /**
-     * Calculates the physical address of the given virtual address.
-     * @param m the virtual file pointer
-     * @return the address of where m actually lies in the underlying file
-     */
+      * Calculates the physical address of the given virtual address.
+      * @param m the virtual file pointer
+      * @return the address of where m actually lies in the underlying file
+      */
     private long encryptedAddrToPhysicalAddr(long m){
         long block = m/BLOCKSIZE;
         return ((block + (numPageIVBlocksAt(block))) * BLOCKSIZE) + (m % BLOCKSIZE);

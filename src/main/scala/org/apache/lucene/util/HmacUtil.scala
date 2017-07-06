@@ -4,10 +4,13 @@ import java.security.InvalidKeyException
 import java.util.concurrent.ThreadLocalRandom
 import javax.crypto.{Mac, SecretKey}
 
+/**
+  * Exception thrown by HMAC Util functions.
+  */
 class CryptoException(message: String = null, cause: Throwable = null) extends RuntimeException(message, cause)
 
 /**
-  * HMAC Util functions
+  * Utility functions used in the HmacFileHeader class.
   */
 object HmacUtil {
   private[this] val HMAC_ERROR_PREFIX: String = "HMAC Error - "
@@ -52,11 +55,17 @@ object HmacUtil {
     }
   }
 
+  /**
+    * Throw exception based on the error.
+    */
   private[this] def error(msg: String, ex: Option[Throwable] = None) = ex match {
     case Some(e) => throw new CryptoException(s"$HMAC_ERROR_PREFIX$msg", e)
     case None => throw new CryptoException(s"$HMAC_ERROR_PREFIX$msg")
   }
 
+  /**
+    * Generate bytes.
+    */
   def generateRandomBytes(numBytes: Int): Array[Byte] = {
     val randomBytes: Array[Byte] = new Array[Byte](numBytes)
     ThreadLocalRandom.current().nextBytes(randomBytes)

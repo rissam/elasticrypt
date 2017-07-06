@@ -9,6 +9,10 @@ import org.elasticsearch.index.settings.IndexSettings
 import org.elasticsearch.index.store.fs.FsIndexStore
 import org.elasticsearch.indices.store.IndicesStore
 
+/**
+  * Extends org.elasticsearch.index.store.fs.FsIndexStore and overrides shardDirectory()
+  * to return the class of EncryptedDirectoryService.
+  */
 class EncryptedIndexStore @Inject() (index: Index,
                                      @IndexSettings indexSettings: Settings,
                                      indexService: IndexService,

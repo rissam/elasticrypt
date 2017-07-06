@@ -10,6 +10,9 @@ object AESIndexOutput {
 }
 
 /**
+  * Extends org.apache.lucene.store.OutputStreamIndexOutput,
+  * using AESChunkedOutputStreamBuilder to build a ChunkedOutputStream that wraps an AESWriterOutputStream.
+  *
   * WRITE_CHUNK_SIZE Taken from FSDirectory.FSIndexOutput
   *
   * The maximum chunk size is 8192 bytes, because {@link FileOutputStream} mallocs

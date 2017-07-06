@@ -1,8 +1,6 @@
 package org.apache.lucene.util;
 
 import com.workday.elasticrypt.KeyProvider;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.ESLoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -12,50 +10,49 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
 /**
- * AESReader provides the ability to read an AES encrypted random access file.
- * Encrypted file contains:
- *  1. A file header containing: TODO
- *  2. Initialization Vector per file page is same size as the BLOCKSIZE constant = 16 bytes.
- *  3. Encrypted Page of size (page_size * BLOCKSIZE) bytes where page_size is provided by the user.
- *     The last page to be encrypted and written to disk has some padding added to it if the last block is not
- *     exactly 16  bytes long. Therefore, number of encrypted bytes of data might be more than actual data bytes
- *     in the file.
- *
- * Sample of the physical encrypted file where unencrypted virtual file is 2017(1024 + 993) bytes long and
- * Page size = 1024 bytes:
- *
- * Header: TODO
- * IV1(16 bytes)
- * 1024 bytes of encrypted Text
- * IV2(16 bytes)
- * 1008 bytes of encrypted Text(993 bytes of actual data + 15 bytes of padding to complete a 16 byte last block.)
- *  <br />
- * All rights reserved by the IIT IR Lab. (c)2009 Jordan Wilberding(jordan@ir.iit.edu)  and Jay Mundrawala(mundra@ir.iit.edu)
- *
- * @author Jay Mundrawala
- * @author Jordan Wilberding
- */
+  * AESReader provides the ability to read an AES encrypted random access file.
+  * Encrypted file contains:
+  *  1. A file header containing: TODO
+  *  2. Initialization Vector per file page is same size as the BLOCKSIZE constant = 16 bytes.
+  *  3. Encrypted Page of size (page_size * BLOCKSIZE) bytes where page_size is provided by the user.
+  *     The last page to be encrypted and written to disk has some padding added to it if the last block is not
+  *     exactly 16  bytes long. Therefore, number of encrypted bytes of data might be more than actual data bytes
+  *     in the file.
+  *
+  * Sample of the physical encrypted file where unencrypted virtual file is 2017(1024 + 993) bytes long and
+  * Page size = 1024 bytes:
+  *
+  * Header: TODO
+  * IV1(16 bytes)
+  * 1024 bytes of encrypted Text
+  * IV2(16 bytes)
+  * 1008 bytes of encrypted Text(993 bytes of actual data + 15 bytes of padding to complete a 16 byte last block.)
+  *
+  * <br />
+  * All rights reserved by the IIT IR Lab. (c)2009 Jordan Wilberding(jordan@ir.iit.edu)  and Jay Mundrawala(mundra@ir.iit.edu)
+  *
+  * @author Jay Mundrawala
+  * @author Jordan Wilberding
+  */
 public class AESReader
 {
     /* AES using 16 byte block sizes */
     private static final int BLOCKSIZE = 16;
-    /* Random Access file object used to write to the physical encrypted file on disk.*/
+    /* Random Access file object used to write to the physical encrypted file on disk. */
     private RandomAccessFile raf;
     /* Decryption Cipher */
     private final Cipher dcipher;
     /* Current Initialization Vector for the page. */
     private final byte[] cur_iv;
 
-    /* header_offset for the File header which contains:
-    * TODO
-    */
+    /* header_offset for the File header which contains: TODO */
     private long header_offset = 0;
     private FileHeader fileHeader;
 
     /* Encryption/Decryption buffer cache.*/
     private final byte[] buffer;
     /* Internal filePos. We cannot use raf's because that one
-    * will always be aligned an a 16 byte boundary
+    * will always be aligned a 16 byte boundary
     */
     private long filePos;
     /* Start position of buffer in reference to byte in the Virtual File without encryption meta-data(IV).
@@ -76,17 +73,19 @@ public class AESReader
     private final Object lock = new Object();
     /* Name of file */
     private final String name;
-
+    /* Key ID used to retrieve key */
     private String keyId;
 
-    private ESLogger logger = ESLoggerFactory.getRootLogger();
-
    /**
-    * Creates an encrypted random access file reader that uses the AES encryption algorithm in CBC mode.
-    * @param raf File to read.
-    * @param page_size Number of 16-byte blocks per page. Must be the same number used when writing the file.
-    * @param keyProvider Getter for key used to initialize the ciphers.
-    */
+     * @constructor
+     * Creates an encrypted random access file reader that uses the AES encryption algorithm in CBC mode.
+     * @param name File name.
+     * @param raf File to read.
+     * @param page_size Number of 16-byte blocks per page. Must be the same number used when writing the file.
+     * @param keyProvider Getter for key used to initialize the ciphers.
+     * @param keyId Used to retrieve the key using keyProvider.
+     * @param fileHeader Creates the file header.
+     */
    public AESReader(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String keyId, FileHeader fileHeader) throws IOException,
           java.security.NoSuchAlgorithmException,
           java.security.InvalidKeyException,
@@ -167,7 +166,7 @@ public class AESReader
        }
    }
 
-    /**
+   /**
      * Reads the file header from the start of the file.
      * Stores the values of blah (TODO) locally.
      * @throws IOException
@@ -179,36 +178,42 @@ public class AESReader
    }
 
    /**
-    * Close the underlying RandomAccessFile
-    */
+     * Close the underlying RandomAccessFile.
+     */
    public void close() throws IOException
    {
       this.raf.close();
    }
 
    /**
-    * Get the current virtual position in the file.
-    */
+     * Get the current virtual position in the file.
+     * @return current position in the file
+     */
    public long getFilePointer() throws IOException
    {
       return this.filePos;
    }
 
+   /**
+     * Sets a new length in bytes for the encrypted file.
+     * @param newEnd is the new length
+     */
    public void setLength(long newEnd) { this.end = newEnd; }
 
    /**
-    * Get the number of bytes in the encrypted file. This size is equal to the physical file size
-    * minus the number of padding blocks, IV/page, and header offset. Basically, same size as unencrypted file.
-    * @return size of file
-    */
+     * Get the number of bytes in the encrypted file. This size is equal to the physical file size
+     * minus the number of padding blocks, IV/page, and header offset. Basically, same size as unencrypted file.
+     * @return size of file
+     */
    public long length()
    {
       return this.end;
    }
 
-   /** Read the next byte from the file.
-    * @return -1 if eof has been reached, the next byte otherwise.
-    */
+   /**
+     * Read the next byte from the file.
+     * @return -1 if eof has been reached, the next byte otherwise.
+     */
    public int read() throws IOException,
            javax.crypto.ShortBufferException,
            javax.crypto.IllegalBlockSizeException,
@@ -226,10 +231,10 @@ public class AESReader
    }
 
    /**
-    * Try to fill the given buffer with the next bytes from the file.
-    * @param b byte array to fill with bytes
-    * @return -1 if eof has been reached, the number of bytes copied into the given buffer otherwise.
-    */
+     * Try to fill the given buffer with the next bytes from the file.
+     * @param b byte array to fill with bytes
+     * @return -1 if eof has been reached, the number of bytes copied into the given buffer otherwise.
+     */
    public int read(byte[] b) throws IOException,
            javax.crypto.ShortBufferException,
            javax.crypto.IllegalBlockSizeException,
@@ -242,12 +247,12 @@ public class AESReader
 
 
    /**
-    * Read bytes from the file into the given byte array
-    * @param b byte array to copy bytes to
-    * @param offset position in b to start copying data
-    * @param len number of bytes to copy to the given byte array
-    * @return -1 if eof has been reached, the number of bytes copied into b otherwise.
-    */
+     * Read bytes from the file into the given byte array
+     * @param b byte array to copy bytes to
+     * @param offset position in b to start copying data
+     * @param len number of bytes to copy to the given byte array
+     * @return -1 if eof has been reached, the number of bytes copied into b otherwise.
+     */
    public int read(byte[] b, int offset, int len) throws IOException,
           javax.crypto.ShortBufferException,
           javax.crypto.IllegalBlockSizeException,
@@ -258,6 +263,11 @@ public class AESReader
        return read(dst);
    }
 
+    /**
+      * TODO
+      * @param dst
+      * @return int
+      */
     public int read(ByteBuffer dst) throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -308,10 +318,10 @@ public class AESReader
    }
 
    /**
-    * Sets the virtual file pointer so that the next byte read will be at pos.
-    * Seeking past the end of the file is not allowed.
-    * @param pos position to seek to.
-    */
+     * Sets the virtual file pointer so that the next byte read will be at pos.
+     * Seeking past the end of the file is not allowed.
+     * @param pos position to seek to.
+     */
    public void seek(long pos) throws IOException,
            javax.crypto.ShortBufferException,
            javax.crypto.IllegalBlockSizeException,
@@ -331,10 +341,10 @@ public class AESReader
    }
 
    /**
-    * Refill will make sure that this.filePos is in the internal buffer and decrypted. It reads
-    * 1 page from disk including the IV used to encrypt the page, and decrpyts the page which is
-    * then stored in the internal buffer.
-    */
+     * Refill will make sure that this.filePos is in the internal buffer and decrypted. It reads
+     * 1 page from disk including the IV used to encrypt the page, and decrpyts the page which is
+     * then stored in the internal buffer.
+     */
    private void refill() throws IOException,
             javax.crypto.ShortBufferException,
             javax.crypto.IllegalBlockSizeException,
@@ -377,21 +387,20 @@ public class AESReader
    }
 
    /**
-    * Calculates the number of init vectors preceding a given block. The block of virtual address m
-    * is determined by m/BLOCKSIZE.
-    * @param block how many IVs are found before this block
-    * @return number of IVs found before block
-    */
-
+     * Calculates the number of init vectors preceding a given block. The block of virtual address m
+     * is determined by m/BLOCKSIZE.
+     * @param block how many IVs are found before this block
+     * @return number of IVs found before block
+     */
    private long numPageIVBlocksAt(long block){
        return (block/((long)page_size)) +1;
    }
 
    /**
-    * Calculates the physical address of the given virtual address.
-    * @param m the virtual file pointer
-    * @return the address of where m actually lies in the underlying file
-    */
+     * Calculates the physical address of the given virtual address.
+     * @param m the virtual file pointer
+     * @return the address of where m actually lies in the underlying file
+     */
    private long encryptedAddrToPhysicalAddr(long m){
        long block = m/BLOCKSIZE;
        return ((block + (numPageIVBlocksAt(block))) * BLOCKSIZE) + (m % BLOCKSIZE);

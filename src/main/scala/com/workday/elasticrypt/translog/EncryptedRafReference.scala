@@ -10,7 +10,8 @@ import org.elasticsearch.index.translog.fs.RafReference
 import org.elasticsearch.index.translog.{EncryptedTranslogStream, TranslogStream}
 
 /**
-  * We extend ES's RafReference so that we don't need to copy even more of ES's code into our own codebase.
+  * We extend ES's RafReference (org.elasticsearch.index.translog.fs.RafReference) so that we do not need to copy
+  * even more of ES's code into our own codebase. Overrides the channel() method to return an EncryptedFileChannel.
   */
 class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProvider: KeyProvider, keyId: String)
   extends RafReference(file, logger) {
