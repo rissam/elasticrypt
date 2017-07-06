@@ -15,10 +15,13 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-/** AESWriter is responsible for writing AES encrypted files to disk.
-  * This class will abstract the encryption and decryption process from the user.
+/**
+  * AESWriter is responsible for writing AES encrypted files to disk.
+  * This class will abstract the encryption process from the user.
   * Encrypted file contains:
-  *  1. A file header containing: TODO
+  *  1. A file header that holds unencrypted metadata about the file. This header data can be customized by providing
+  *     different implementations of `FileHeader` when constructing an `AESReader`. The header is useful for storing
+  *     information that can be used to verify the proper key is being used to decrypt the file.
   *  2. Initialization Vector per file page is same size as the BLOCKSIZE constant = 16 bytes.
   *  3. Encrypted Page of size (page_size * BLOCKSIZE) bytes where page_size is provided by the user.
   *     The last page to be encrypted and written to disk has some padding added to it if the last block is not
@@ -28,7 +31,7 @@ import java.security.NoSuchAlgorithmException;
   * Sample of the physical encrypted file where unencrypted virtual file is 2017(1024 + 993) bytes long and
   * Page size = 1024 bytes:
   *
-  * Header: TODO
+  * Header(custom number of bytes)
   * IV1(16 bytes)
   * 1024 bytes of encrypted Text
   * IV2(16 bytes)
@@ -62,9 +65,7 @@ public class AESWriter
     * total file size of (1024 + 16) * 4 bytes.
     */
     private byte[] cur_iv;
-    /* header_offset for the File header which contains:
-    * TODO
-    */
+    /* header_offset for the file header */
     private long header_offset = 0;
     /* Current byte in the buffer which is caching the data for write.*/
     private int buffer_pos;
@@ -161,9 +162,7 @@ public class AESWriter
     }
 
     /**
-      * Write the file header to the beginning of the encrypted file.
-      * File Header contains:
-      *  TODO
+      * Writes the unencrypted file header to the start of the file.
       * @throws IOException
       */
     private synchronized void writeFileHeaderLazy() throws
