@@ -1,3 +1,10 @@
+/*
+ * Copyright 2017 Workday, Inc.
+ *
+ * This software is available under the MIT license.
+ * Please see the LICENSE.txt file in this project.
+ */
+
 package org.elasticsearch.index.store
 
 // scalastyle:off underscore.import
@@ -89,7 +96,3 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     new AESReader(path.getName, raf, pageSize, keyProvider, keyId, fileHeader)
   }
 }
-
-
-
-
