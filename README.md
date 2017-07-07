@@ -1,3 +1,3 @@
-# elasticsearch-encryption-plug-in
+# elasticrypt
 
 Application-level tenanted encryption at rest for Elasticsearch.
