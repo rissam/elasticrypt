@@ -12,11 +12,11 @@ import java.io._
 
 import com.workday.elasticrypt.{KeyIdParser, KeyProvider}
 import org.apache.lucene.store._
+import org.apache.lucene.util.{AESReader, AESWriter, FileHeader, HmacFileHeader}
 // scalastyle:on underscore.import
 
 import org.apache.lucene.codecs.lucene46.Lucene46SegmentInfoFormat
 import org.apache.lucene.index.IndexFileNames
-import org.apache.lucene.util.{AESReader, AESWriter, FileHeader, HmacFileHeader}
 import org.elasticsearch.client.Client
 import org.elasticsearch.common.logging.{ESLogger, ESLoggerFactory}
 import org.elasticsearch.index.shard.ShardId

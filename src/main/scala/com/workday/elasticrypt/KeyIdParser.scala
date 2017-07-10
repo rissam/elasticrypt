@@ -14,7 +14,10 @@ import org.elasticsearch.index.Index
   * Contains functions to retrieve the key ID.
   */
 object KeyIdParser {
-  val indexNameParser = new KeyIdParser[Index]((index: Index) => index.getName.split("@").head)
+  val indexNameParser = new KeyIdParser[Index]((index: Index) => {
+    val name = index.getName
+    name
+  })
   val aliasNameParser = new KeyIdParser[AliasMetaData]((aliasMetaData: AliasMetaData) => aliasMetaData.alias.split("@").head)
 }
 
