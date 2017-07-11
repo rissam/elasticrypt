@@ -22,5 +22,5 @@ object HardcodedKeyProvider {
   * We plan to introduce more complex KeyProviders such as HttpKeyProvider in a followup PR.
   */
 class HardcodedKeyProvider(keyValue: Array[Byte] = HardcodedKeyProvider.DEFAULT_KEY) extends KeyProvider {
-  def getKey(keyId: String): SecretKeySpec = new SecretKeySpec(keyValue, HardcodedKeyProvider.ALGORITHM_AES)
+  def getKey(indexName: String): SecretKeySpec = new SecretKeySpec(keyValue, HardcodedKeyProvider.ALGORITHM_AES)
 }

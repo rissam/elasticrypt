@@ -19,6 +19,14 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
 
+  def getMockShardId = {
+    val mockShardId = mock[ShardId]
+    val mockIndex = mock[Index]
+    when(mockIndex.getName).thenReturn("env@tenant")
+    when(mockShardId.index).thenReturn(mockIndex)
+    mockShardId
+  }
+
   behavior of "#openInput"
   it should "open raw input for segment files" in {
     new PrintWriter("/tmp/segments_test") {
@@ -27,11 +35,7 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     val path = new File("/tmp")
     val context = new IOContext(new FlushInfo(1, 1))
 
-    val mockShardId = mock[ShardId]
-    val mockIndex = mock[Index]
-    doReturn(mockIndex).when(mockShardId).index()
-    doReturn("env@tenant").when(mockIndex).getName()
-    val ed = new EncryptedDirectory(path, mock[LockFactory], mockShardId, mock[Client], mock[NodeKeyProviderComponent])
+    val ed = new EncryptedDirectory(path, mock[LockFactory], getMockShardId, mock[Client], mock[NodeKeyProviderComponent])
     ed.openInput("segments_test", context).toString.contains("AESIndexInput") shouldBe false
   }
 
@@ -45,8 +49,7 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     when(settings.get("url")).thenReturn("test") // TODO: symanurl?
     when(settings.getAsMap).thenReturn(ImmutableMap.of("url", "test"))
 
-    val component = mock[NodeKeyProviderComponent]
-    val ed = spy(new EncryptedDirectory(path, mock[LockFactory], mock[ShardId], mock[Client], component))
+    val ed = spy(new EncryptedDirectory(path, mock[LockFactory], getMockShardId, mock[Client], mock[NodeKeyProviderComponent]))
     doReturn(mock[AESReader]).when(ed).createAESReader(any(), any(), any(), any(), any())
     ed.openInput("edt_test", context).toString.contains("AESIndexInput") shouldBe true
   }
@@ -59,7 +62,7 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     val path = new File("/tmp")
     val context = new IOContext(new FlushInfo(1, 1))
 
-    val ed = new EncryptedDirectory(path, mock[LockFactory], mock[ShardId], mock[Client], mock[NodeKeyProviderComponent])
+    val ed = new EncryptedDirectory(path, mock[LockFactory], getMockShardId, mock[Client], mock[NodeKeyProviderComponent])
     ed.createOutput("segments_test", context).toString.contains("AESIndexOutput") shouldBe false
   }
 
@@ -76,7 +79,7 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     val component = mock[NodeKeyProviderComponent]
 
     val keySpec = mock[SecretKeySpec]
-    val ed = spy(new EncryptedDirectory(path, mock[LockFactory], mock[ShardId], mock[Client], component))
+    val ed = spy(new EncryptedDirectory(path, mock[LockFactory], getMockShardId, mock[Client], component))
     ed.createOutput("edt_test", context).toString.contains("AESIndexOutput") shouldBe true
   }
 
@@ -85,7 +88,7 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     val encodedKeyBytes = (1 to 32).map(_.toByte).toArray
 //    val secretKeySpec = new SecretKeySpec(encodedKeyBytes, 0, encodedKeyBytes.length, HmacUtil.DATA_CIPHER_ALGORITHM)
     val hardcodedKeyProvider = new HardcodedKeyProvider(encodedKeyBytes)
-    val key = hardcodedKeyProvider.getKey(anyString())
+    val key = hardcodedKeyProvider.getKey("test")
 
     val path = new File("/tmp")
 //    val context = new IOContext(new FlushInfo(1, 1))
@@ -93,19 +96,18 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     when(settings.get("url")).thenReturn("test") // TODO: symanurl?
     when(settings.getAsMap).thenReturn(ImmutableMap.of("url", "test"))
 
-    val component = mock[NodeKeyProviderComponent]
-    val ed = spy(new EncryptedDirectory(path, mock[LockFactory], mock[ShardId], mock[Client], component))
+    val ed = spy(new EncryptedDirectory(path, mock[LockFactory], getMockShardId, mock[Client], mock[NodeKeyProviderComponent]))
 
-//    val f = new File("/tmp/edt_test")
-//    if (f.exists()) {
-//      f.delete()
-//    }
+    val f = new File("/tmp/edt_test")
+    if (f.exists()) {
+      f.delete()
+    }
 
     val testData = "READ_WRITE_TEST"
     val keyProvider = mock[KeyProvider]
-    when(keyProvider.getKey(anyString())).thenReturn(key)
+    when(keyProvider.getKey("test")).thenReturn(key)
 
-    val aesWriter = ed.createAESWriter(path, new RandomAccessFile(path, "rw"), 8192, keyProvider, mock[FileHeader])
+    val aesWriter = ed.createAESWriter(path, new RandomAccessFile(f, "rw"), 8192, keyProvider, mock[FileHeader])
     aesWriter.write(testData.map(_.toByte).toArray[Byte], 0, testData.length)
     aesWriter.close()
 

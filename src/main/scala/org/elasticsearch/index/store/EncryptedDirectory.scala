@@ -10,7 +10,7 @@ package org.elasticsearch.index.store
 // scalastyle:off underscore.import
 import java.io._
 
-import com.workday.elasticrypt.{KeyIdParser, KeyProvider}
+import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.store._
 import org.apache.lucene.util.{AESReader, AESWriter, FileHeader, HmacFileHeader}
 // scalastyle:on underscore.import
@@ -36,10 +36,10 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
 
   private[this] val pageSize = 64
 
-  private[this] val keyId = KeyIdParser.indexNameParser.parseKeyId(shardId.index)
+  private[this] val indexName = shardId.getIndex
 
   // Override this to customize file header
-  protected[this] def buildFileHeader(raf: RandomAccessFile): FileHeader = new HmacFileHeader(raf, component.keyProvider, keyId)
+  protected[this] def buildFileHeader(raf: RandomAccessFile): FileHeader = new HmacFileHeader(raf, component.keyProvider, indexName)
 
   /** Creates an IndexOutput for the file with the given name. */
   @throws[IOException]
@@ -88,11 +88,11 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
 
   /** Creates an AES Writer. */
   protected[store] def createAESWriter(path: File, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, fileHeader: FileHeader) = {
-    new AESWriter(path.getName, raf, pageSize, keyProvider, keyId, fileHeader)
+    new AESWriter(path.getName, raf, pageSize, keyProvider, indexName, fileHeader)
   }
 
   /** Creates an AES Reader. */
   protected[store] def createAESReader(path: File, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, fileHeader: FileHeader) = {
-    new AESReader(path.getName, raf, pageSize, keyProvider, keyId, fileHeader)
+    new AESReader(path.getName, raf, pageSize, keyProvider, indexName, fileHeader)
   }
 }

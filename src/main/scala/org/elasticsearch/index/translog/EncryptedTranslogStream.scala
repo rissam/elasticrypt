@@ -24,7 +24,7 @@ import sun.nio.ch.ChannelInputStream
   * to use a ChannelInputStream that wraps an EncryptedFileChannel. This class must be located in
   * org.elasticsearch.index.translog in order to access the no-arg constructor of ChecksummedTranslogStream.
   */
-class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, keyId: String) extends ChecksummedTranslogStream {
+class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName: String) extends ChecksummedTranslogStream {
 
   private[this] val logger: ESLogger = ESLoggerFactory.getRootLogger
 
@@ -45,7 +45,7 @@ class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, keyId: St
     * Copied from ChecksummedTranslogStream but modified to use EncryptedFileChannel (and removed CodecUtil.checkHeader).
     */
   override def openInput(translogFile: File): StreamInput = {
-    val encryptedFileInputStream = new ChannelInputStream(new EncryptedFileChannel(translogFile, pageSize, keyProvider, keyId))
+    val encryptedFileInputStream = new ChannelInputStream(new EncryptedFileChannel(translogFile, pageSize, keyProvider, indexName))
     var success = false
     try {
       val in = createInputStreamStreamInput(encryptedFileInputStream)

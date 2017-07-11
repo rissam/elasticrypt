@@ -9,7 +9,6 @@ package com.workday.elasticrypt.translog
 
 import java.io.File
 
-import com.workday.elasticrypt.KeyIdParser
 import org.elasticsearch.common.inject.Inject
 import org.elasticsearch.common.logging.ESLogger
 import org.elasticsearch.common.settings.Settings
@@ -35,21 +34,21 @@ class EncryptedTranslog @Inject()(shardId: ShardId,
   extends FsTranslog(shardId, indexSettings, indexSettingsService, bigArrays, indexStore) {
 
   private[this] val pageSize = 64
-  private[translog] val keyId = KeyIdParser.indexNameParser.parseKeyId(shardId.index)
+  private[translog] val indexName = shardId.getIndex
 
   def getKeyProvider = component.keyProvider
 
   override def add(operation: Translog.Operation): Translog.Location = {
-    getKeyProvider.getKey(keyId) // make sure that we can get the key for this tenant, don't retry so we can fail fast
+    getKeyProvider.getKey(indexName) // make sure that we can get the key for this tenant, don't retry so we can fail fast
     super.add(operation)
   }
 
   override protected[translog] def createRafReference(file: File, logger: ESLogger) = {
-    new EncryptedRafReference(file, logger, pageSize, getKeyProvider, keyId)
+    new EncryptedRafReference(file, logger, pageSize, getKeyProvider, indexName)
   }
 
   override def translogStreamFor(translogFile: File): TranslogStream = {
-    new EncryptedTranslogStream(pageSize, getKeyProvider, keyId)
+    new EncryptedTranslogStream(pageSize, getKeyProvider, indexName)
   }
 
 }

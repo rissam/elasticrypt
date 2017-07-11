@@ -20,9 +20,9 @@ import org.elasticsearch.index.translog.{EncryptedTranslogStream, TranslogStream
   * We extend ES's RafReference (org.elasticsearch.index.translog.fs.RafReference) so that we do not need to copy
   * even more of ES's code into our own codebase. Overrides the channel() method to return an EncryptedFileChannel.
   */
-class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProvider: KeyProvider, keyId: String)
+class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProvider: KeyProvider, indexName: String)
   extends RafReference(file, logger) {
-  private[this] val encryptedFileChannel = new EncryptedFileChannel(file.getName, raf(), pageSize, keyProvider, keyId)
+  private[this] val encryptedFileChannel = new EncryptedFileChannel(file.getName, raf(), pageSize, keyProvider, indexName)
 
   /**
     * Shadow the RafReference refCount because we need to override decreaseRefCount()
@@ -64,6 +64,6 @@ class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProv
 
   @Override
   def translogStreamFor: TranslogStream = {
-    new EncryptedTranslogStream(pageSize, keyProvider, keyId)
+    new EncryptedTranslogStream(pageSize, keyProvider, indexName)
   }
 }
