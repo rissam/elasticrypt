@@ -2,8 +2,9 @@ package org.elasticsearch.index.translog
 
 import java.io.{EOFException, File, IOException, RandomAccessFile}
 import java.nio.channels.FileChannel
+import javax.crypto.spec.SecretKeySpec
 
-import com.workday.elasticrypt.{HardcodedKeyProvider, KeyProvider}
+import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.util.FileHeader
 import sun.nio.ch.ChannelInputStream
 
@@ -19,25 +20,24 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class EncryptedTranslogStreamTest extends FlatSpec with Matchers with MockitoSugar {
 
+  def getIndexName: String = "test"
+
   behavior of "#writeHeader"
   it should "return 0" in {
     val keyProvider = mock[KeyProvider]
-    val ets = new EncryptedTranslogStream(10, keyProvider, anyString())
+    val ets = new EncryptedTranslogStream(10, keyProvider, getIndexName)
 
     ets.writeHeader(mock[FileChannel]) shouldBe 0
   }
 
   behavior of "#openInput"
   it should "rethrow EOFException as TruncatedTranslogException" in {
-    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
-    val hardcodedKeyProvider = new HardcodedKeyProvider(keyBytes)
-    val keys = hardcodedKeyProvider.getKey(anyString())
-
+//    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
     val keyProvider = mock[KeyProvider]
-    when(keyProvider.getKey(anyString())).thenReturn(keys)
+    when(keyProvider.getKey(getIndexName)).thenReturn(mock[SecretKeySpec])
 
-    val ets = spy(new EncryptedTranslogStream(10, keyProvider, anyString()))
-    doThrow(new EOFException("test")).when(ets).createInputStreamStreamInput(any[ChannelInputStream])
+    val ets = spy(new EncryptedTranslogStream(10, keyProvider, getIndexName))
+    doThrow(new EOFException(getIndexName)).when(ets).createInputStreamStreamInput(any[ChannelInputStream])
 
     val translogFile = new File("/tmp/ets_test")
     an[TruncatedTranslogException] shouldBe thrownBy {
@@ -46,16 +46,12 @@ class EncryptedTranslogStreamTest extends FlatSpec with Matchers with MockitoSug
   }
 
   it should "rethrow IOException as TruncatedTranslogException" in {
-    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
-    val hardcodedKeyProvider = new HardcodedKeyProvider(keyBytes)
-    val keys = hardcodedKeyProvider.getKey(anyString())
-
+//    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
     val keyProvider = mock[KeyProvider]
-    when(keyProvider.getKey(anyString())).thenReturn(keys)
+    when(keyProvider.getKey(getIndexName)).thenReturn(mock[SecretKeySpec])
 
-
-    val ets = spy(new EncryptedTranslogStream(10, keyProvider, anyString()))
-    doThrow(new IOException("test")).when(ets).createInputStreamStreamInput(any[ChannelInputStream])
+    val ets = spy(new EncryptedTranslogStream(10, keyProvider, getIndexName))
+    doThrow(new IOException(getIndexName)).when(ets).createInputStreamStreamInput(any[ChannelInputStream])
 
     val translogFile = new File("/tmp/ets_test")
     an[TranslogCorruptedException] shouldBe thrownBy {
@@ -64,14 +60,11 @@ class EncryptedTranslogStreamTest extends FlatSpec with Matchers with MockitoSug
   }
 
   it should "return InputStreamStreamInput" in {
-    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
-    val hardcodedKeyProvider = new HardcodedKeyProvider(keyBytes)
-    val keys = hardcodedKeyProvider.getKey(anyString())
-
+//    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
     val keyProvider = mock[KeyProvider]
-    when(keyProvider.getKey(anyString())).thenReturn(keys)
+    when(keyProvider.getKey(getIndexName)).thenReturn(mock[SecretKeySpec])
 
-    val ets = new EncryptedTranslogStream(10, keyProvider, anyString())
+    val ets = spy(new EncryptedTranslogStream(10, keyProvider, getIndexName))
     val existingTranslogFile = spy(new File("/tmp/ets_test"))
 
     if (existingTranslogFile.exists()) {
@@ -84,7 +77,7 @@ class EncryptedTranslogStreamTest extends FlatSpec with Matchers with MockitoSug
     }
 
     val fileHeader = mock[FileHeader]
-    val aesWriter = new AESWriter("test", new RandomAccessFile("/tmp/ets_test", "rw"), 100, keyProvider, anyString(), fileHeader)
+    val aesWriter = new AESWriter("test", new RandomAccessFile("/tmp/ets_test", "rw"), 100, keyProvider, getIndexName, fileHeader)
     val codecName = "translog"
     writeInt(aesWriter, 1071082519) // Fixed seed
     aesWriter.write((Seq(codecName.length.toChar) ++ codecName).map(_.toByte).toArray[Byte], 0, codecName.length + 1)

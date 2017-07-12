@@ -18,26 +18,28 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 
 class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar {
-  def getMockChannel = new EncryptedFileChannel(new File("test"), 10, mock[KeyProvider], anyString())
+  def getMockKeyProvider = {
+    val keyProvider = mock[KeyProvider]
+    when(keyProvider.getKey("test")).thenReturn(mock[SecretKeySpec])
+    keyProvider
+  }
+
+  def getMockChannel = new EncryptedFileChannel(new File("test"), 10, getMockKeyProvider, "test")
 
   behavior of "#reader & #writer"
   it should "return an AESReader and AESWriter" in {
-    val key = mock[SecretKeySpec]
-    val keyProvider = mock[KeyProvider]
-    when(keyProvider.getKey(anyString())).thenReturn(key)
-
     val fileStart = new File("/tmp/edt_test") // TODO: remove this once the test has been run with fileCleanup below
     if (fileStart.exists()) {
       fileStart.delete()
     }
 
-    val efc_writer = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "rw"), 10, keyProvider, anyString())
+    val efc_writer = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "rw"), 10, getMockKeyProvider, anyString())
     val testData = "READ_WRITE_TEST"
     val aesWriter = efc_writer.writer
     aesWriter.write(testData.map(_.toByte).toArray[Byte], 0, testData.length)
     aesWriter.close()
 
-    val efc_reader = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "r"), 10, keyProvider, anyString())
+    val efc_reader = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "r"), 10, getMockKeyProvider, anyString())
     val aesReader = efc_reader.reader
     val bytes = new Array[Byte](testData.length)
     aesReader.read(bytes)
@@ -58,7 +60,7 @@ class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar 
       fileStart.delete()
     }
 
-    val efc = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/efc_test", "rw"), 10, mock[KeyProvider], anyString())
+    val efc = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/efc_test", "rw"), 10, getMockKeyProvider, "test")
     efc.writer.length() shouldBe 0
 
     val fileCleanup = new File("/tmp/efc_test")

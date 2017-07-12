@@ -15,6 +15,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
+import static jdk.nashorn.internal.objects.Global.println;
+
 /**
   * AESWriter is responsible for writing AES encrypted files to disk.
   * This class will abstract the encryption process from the user.
@@ -130,6 +132,7 @@ public class AESWriter
             this.raf = raf;
             this.keyProvider = keyProvider;
             this.keyId = keyId;
+            this.key = keyProvider.getKey(this.keyId);
             this.fileHeader = fileHeader;
 
            /* Only allow writing on new files. Lucene specifies that a new writer
@@ -175,8 +178,6 @@ public class AESWriter
                 /* Set the header offset to be the size of bytes written for the header.*/
                 this.header_offset = this.fileHeader.writeHeader();
 
-                this.key = keyProvider.getKey(this.keyId);
-
                 /* Initialize the ciphers. We should clean this up depending on the mode.*/
                 this.ivgen = KeyGenerator.getInstance("AES");
                 this.initCiphers(generateIV());
@@ -212,8 +213,8 @@ public class AESWriter
         this.cur_iv = ivps.getIV();
 
        /* Init the ciphers with ivps */
-        this.ecipher.init(Cipher.ENCRYPT_MODE, this.key,ivps);
-        this.dcipher.init(Cipher.DECRYPT_MODE, this.key,ivps);
+        this.ecipher.init(Cipher.ENCRYPT_MODE, this.key, ivps);
+        this.dcipher.init(Cipher.DECRYPT_MODE, this.key, ivps);
     }
 
     /**

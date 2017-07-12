@@ -5,6 +5,7 @@ import java.nio.file.spi.FileSystemProvider
 import java.nio.file.{FileSystem, Path, Paths}
 import javax.crypto.spec.SecretKeySpec
 
+import com.workday.elasticrypt.{HardcodedKeyProvider, KeyProvider}
 import org.elasticsearch.cache.recycler.PageCacheRecycler
 import org.elasticsearch.common.logging.ESLogger
 import org.elasticsearch.common.settings.{ImmutableSettings, Settings}
@@ -13,8 +14,8 @@ import org.elasticsearch.common.util.BigArrays
 import org.elasticsearch.index.Index
 import org.elasticsearch.index.settings.IndexSettingsService
 import org.elasticsearch.index.shard.ShardId
-import org.elasticsearch.index.store.{IndexStore, NodeKeyProviderComponent}
 import org.elasticsearch.index.store.ram.RamIndexStore
+import org.elasticsearch.index.store.{IndexStore, NodeKeyProviderComponent}
 import org.elasticsearch.index.translog.fs.FsTranslogFile.Type
 import org.elasticsearch.index.translog.{EncryptedTranslogStream, Translog}
 import org.elasticsearch.threadpool.ThreadPool
@@ -67,7 +68,8 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "#add"
   it should "request the key" in {
     val shard = mock[ShardId]
-    doReturn(new Index("test")).when(shard).index()
+    doReturn(new Index("test")).when(shard).index
+    doReturn("test").when(shard).getIndex
     doReturn(123).when(shard).id()
 
     val settings = ImmutableSettings.builder().build()
@@ -78,20 +80,20 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
     val bigArrays = new BigArrays(recycler, breakerService)
     doReturn(Seq(Paths.get("/tmp/test")).toArray[Path]).when(indexStore).shardTranslogLocations(any[ShardId])
 
+    val requester = mock[KeyProvider]
     val eft = spy(new EncryptedTranslog(shard, settings, mock[IndexSettingsService], bigArrays, indexStore, mock[NodeKeyProviderComponent]))
-    val requester = spy(eft.getKeyProvider)
     doReturn(requester).when(eft).getKeyProvider
 
     val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
     val keySpec = new SecretKeySpec(keyBytes, "AES")
-    doReturn(keySpec).when(requester).getKey(anyString())
+    doReturn(keySpec).when(requester).getKey("test")
 
     eft.newTranslog(12345L)
 
     val op = new Translog.Create("type1", "id1", Seq(0.toByte).toArray[Byte])
-    verify(requester, times(0)).getKey(anyString())
+    verify(requester, times(0)).getKey("test")
     eft.add(op) shouldBe an[Translog.Location]
-    verify(requester, times(1)).getKey(anyString())
+    verify(requester, times(1)).getKey("test")
   }
 
 }

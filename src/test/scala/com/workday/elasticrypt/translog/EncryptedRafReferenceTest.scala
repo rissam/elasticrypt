@@ -28,7 +28,7 @@ class EncryptedRafReferenceTest extends FlatSpec with Matchers with MockitoSugar
   behavior of "#channel"
   it should "return EncryptedFileChannel" in {
     val file = new File("/tmp/err_test")
-    val err = new EncryptedRafReference(file, mock[ESLogger], 10, mock[KeyProvider], anyString())
+    val err = new EncryptedRafReference(file, mock[ESLogger], 10, mock[KeyProvider], "test")
 
     err.channel() shouldBe an[EncryptedFileChannel]
   }
@@ -36,7 +36,7 @@ class EncryptedRafReferenceTest extends FlatSpec with Matchers with MockitoSugar
   behavior of "#translogStreamFor"
   it should "return EncryptedTranslogStream" in {
     val file = new File("/tmp/err_test")
-    val err = new EncryptedRafReference(file, mock[ESLogger], 10, mock[KeyProvider], anyString())
+    val err = new EncryptedRafReference(file, mock[ESLogger], 10, mock[KeyProvider], "test")
 
     err.translogStreamFor shouldBe an[EncryptedTranslogStream]
   }
@@ -44,7 +44,7 @@ class EncryptedRafReferenceTest extends FlatSpec with Matchers with MockitoSugar
   behavior of "#increaseRefCount"
   it should "increment reference counter" in {
     val file = new File("/tmp/err_test")
-    val err = new EncryptedRafReference(file, mock[ESLogger], 10, mock[KeyProvider], anyString())
+    val err = new EncryptedRafReference(file, mock[ESLogger], 10, mock[KeyProvider], "test")
 
     err.refCount.intValue() shouldBe 1
     err.increaseRefCount()
@@ -58,13 +58,13 @@ class EncryptedRafReferenceTest extends FlatSpec with Matchers with MockitoSugar
       tmpFile.delete()
     }
 
-    spy(new EncryptedFileChannel("test", new RandomAccessFile(file.getAbsolutePath, "rw"), 10, getKeyProvider, anyString()))
+    spy(new EncryptedFileChannel("test", new RandomAccessFile(file.getAbsolutePath, "rw"), 10, getKeyProvider, "test"))
   }
 
   behavior of "#decreaseRefCount"
   it should "decrement reference counter" in {
     val file = spy(new File("/tmp/err_test"))
-    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, anyString()))
+    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, "test"))
     val efc = getEFC(file)
     doReturn(efc).when(err).channel()
     doNothing().when(efc).implCloseChannel()
@@ -79,7 +79,7 @@ class EncryptedRafReferenceTest extends FlatSpec with Matchers with MockitoSugar
 
   it should "decrement reference counter and delete file" in {
     val file = spy(new File("/tmp/err_test"))
-    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, anyString()))
+    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, "test"))
     val efc = getEFC(file)
 
     doReturn(efc).when(err).channel()
@@ -95,7 +95,7 @@ class EncryptedRafReferenceTest extends FlatSpec with Matchers with MockitoSugar
 
   it should "decrement reference counter and not delete the file if there are references left" in {
     val file = spy(new File("/tmp/err_test"))
-    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, anyString()))
+    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, "test"))
     val efc = getEFC(file)
 
     doReturn(efc).when(err).channel()
@@ -112,7 +112,7 @@ class EncryptedRafReferenceTest extends FlatSpec with Matchers with MockitoSugar
 
   it should "handle IOExceptions" in {
     val file = spy(new File("/tmp/err_test"))
-    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, anyString()))
+    val err = spy(new EncryptedRafReference(file, mock[ESLogger], 10, getKeyProvider, "test"))
     val efc = getEFC(file)
 
     doReturn(efc).when(err).channel()
