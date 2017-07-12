@@ -15,7 +15,7 @@ class EncryptedDirectoryServiceTest extends FlatSpec with Matchers with MockitoS
   behavior of "#newFSDirectory"
   it should "return EncryptedDirectory" in {
     val shardId = mock[ShardId]
-    when(shardId.index()).thenReturn(new Index("test"))
+    when(shardId.index()).thenReturn(mock[Index])
     when(shardId.id()).thenReturn(0)
 
     val settings = mock[Settings]

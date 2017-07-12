@@ -5,7 +5,7 @@ import java.nio.channels.FileChannel
 import javax.crypto.spec.SecretKeySpec
 
 import com.workday.elasticrypt.KeyProvider
-import org.apache.lucene.util.FileHeader
+import org.apache.lucene.util.{FileHeader, HmacUtil}
 import sun.nio.ch.ChannelInputStream
 
 //scalastyle: off
@@ -60,9 +60,10 @@ class EncryptedTranslogStreamTest extends FlatSpec with Matchers with MockitoSug
   }
 
   it should "return InputStreamStreamInput" in {
-//    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
+    val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
+    val secretKeySpec = new SecretKeySpec(keyBytes, 0, keyBytes.length, HmacUtil.DATA_CIPHER_ALGORITHM)
     val keyProvider = mock[KeyProvider]
-    when(keyProvider.getKey(getIndexName)).thenReturn(mock[SecretKeySpec])
+    when(keyProvider.getKey(getIndexName)).thenReturn(secretKeySpec)
 
     val ets = spy(new EncryptedTranslogStream(10, keyProvider, getIndexName))
     val existingTranslogFile = spy(new File("/tmp/ets_test"))

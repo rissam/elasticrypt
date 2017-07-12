@@ -5,7 +5,7 @@ import java.nio.file.spi.FileSystemProvider
 import java.nio.file.{FileSystem, Path, Paths}
 import javax.crypto.spec.SecretKeySpec
 
-import com.workday.elasticrypt.{HardcodedKeyProvider, KeyProvider}
+import com.workday.elasticrypt.KeyProvider
 import org.elasticsearch.cache.recycler.PageCacheRecycler
 import org.elasticsearch.common.logging.ESLogger
 import org.elasticsearch.common.settings.{ImmutableSettings, Settings}
@@ -20,7 +20,7 @@ import org.elasticsearch.index.translog.fs.FsTranslogFile.Type
 import org.elasticsearch.index.translog.{EncryptedTranslogStream, Translog}
 import org.elasticsearch.threadpool.ThreadPool
 import org.mockito.Matchers._
-import org.mockito.Mockito.{doReturn, spy, times, verify}
+import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -28,7 +28,7 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
 
   def getEFT = {
     val shard = mock[ShardId]
-    doReturn(new Index("test")).when(shard).index()
+    doReturn(mock[Index]).when(shard).index()
     doReturn(123).when(shard).id()
 
     val indexStore = mock[IndexStore]
@@ -68,7 +68,7 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "#add"
   it should "request the key" in {
     val shard = mock[ShardId]
-    doReturn(new Index("test")).when(shard).index
+    doReturn(mock[Index]).when(shard).index
     doReturn("test").when(shard).getIndex
     doReturn(123).when(shard).id()
 
@@ -78,11 +78,13 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
     val recycler = new PageCacheRecycler(settings, threadPool)
     val breakerService = null
     val bigArrays = new BigArrays(recycler, breakerService)
+    val mockedNodeKeyProviderComponent = mock[NodeKeyProviderComponent]
+
     doReturn(Seq(Paths.get("/tmp/test")).toArray[Path]).when(indexStore).shardTranslogLocations(any[ShardId])
 
     val requester = mock[KeyProvider]
-    val eft = spy(new EncryptedTranslog(shard, settings, mock[IndexSettingsService], bigArrays, indexStore, mock[NodeKeyProviderComponent]))
-    doReturn(requester).when(eft).getKeyProvider
+    val eft = spy(new EncryptedTranslog(shard, settings, mock[IndexSettingsService], bigArrays, indexStore, mockedNodeKeyProviderComponent))
+    doReturn(requester).when(mockedNodeKeyProviderComponent).keyProvider
 
     val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
     val keySpec = new SecretKeySpec(keyBytes, "AES")
@@ -91,9 +93,9 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
     eft.newTranslog(12345L)
 
     val op = new Translog.Create("type1", "id1", Seq(0.toByte).toArray[Byte])
-    verify(requester, times(0)).getKey("test")
-    eft.add(op) shouldBe an[Translog.Location]
     verify(requester, times(1)).getKey("test")
+    eft.add(op) shouldBe an[Translog.Location]
+    verify(requester, times(2)).getKey("test")
   }
 
 }

@@ -6,6 +6,7 @@ import java.nio.channels.{ReadableByteChannel, WritableByteChannel}
 import javax.crypto.spec.SecretKeySpec
 
 import com.workday.elasticrypt.KeyProvider
+import org.apache.lucene.util.HmacUtil
 
 //scalastyle: off
 import scala.collection.mutable._
@@ -18,13 +19,18 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 
 class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar {
+
+  def getIndexName: String = "test"
+
   def getMockKeyProvider = {
     val keyProvider = mock[KeyProvider]
-    when(keyProvider.getKey("test")).thenReturn(mock[SecretKeySpec])
+    val encodedKeyBytes = (1 to 32).map(_.toByte).toArray
+    val secretKeySpec = new SecretKeySpec(encodedKeyBytes, 0, encodedKeyBytes.length, HmacUtil.DATA_CIPHER_ALGORITHM)
+    when(keyProvider.getKey(getIndexName)).thenReturn(secretKeySpec)
     keyProvider
   }
 
-  def getMockChannel = new EncryptedFileChannel(new File("test"), 10, getMockKeyProvider, "test")
+  def getMockChannel = new EncryptedFileChannel(new File("test"), 10, getMockKeyProvider, getIndexName)
 
   behavior of "#reader & #writer"
   it should "return an AESReader and AESWriter" in {
@@ -33,13 +39,13 @@ class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar 
       fileStart.delete()
     }
 
-    val efc_writer = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "rw"), 10, getMockKeyProvider, anyString())
+    val efc_writer = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "rw"), 10, getMockKeyProvider, getIndexName)
     val testData = "READ_WRITE_TEST"
     val aesWriter = efc_writer.writer
     aesWriter.write(testData.map(_.toByte).toArray[Byte], 0, testData.length)
     aesWriter.close()
 
-    val efc_reader = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "r"), 10, getMockKeyProvider, anyString())
+    val efc_reader = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "r"), 10, getMockKeyProvider, getIndexName)
     val aesReader = efc_reader.reader
     val bytes = new Array[Byte](testData.length)
     aesReader.read(bytes)
@@ -60,7 +66,7 @@ class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar 
       fileStart.delete()
     }
 
-    val efc = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/efc_test", "rw"), 10, getMockKeyProvider, "test")
+    val efc = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/efc_test", "rw"), 10, getMockKeyProvider, getIndexName)
     efc.writer.length() shouldBe 0
 
     val fileCleanup = new File("/tmp/efc_test")
