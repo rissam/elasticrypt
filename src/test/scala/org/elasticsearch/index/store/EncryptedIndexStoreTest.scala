@@ -15,12 +15,11 @@ import org.mockito.Matchers
 class EncryptedIndexStoreTest extends FlatSpec with org.scalatest.Matchers with MockitoSugar {
 
   behavior of "#shardDirectory"
-  it should "shardDirectory" in {
+  it should "return EncryptedDirectoryService" in {
     val settings = mock[Settings]
     when(settings.getComponentSettings(Matchers.any())).thenReturn(null)
     when(settings.get(Matchers.eq("index.store.throttle.type"), Matchers.anyString())).thenReturn("all")
     when(settings.getAsBytesSize(Matchers.eq("index.store.throttle.max_bytes_per_sec"), Matchers.any())).thenReturn(new ByteSizeValue(1000))
-    when(settings.get(Matchers.eq("index.store.throttle.type"), Matchers.anyString())).thenReturn("all")
     val nodeEnv = mock[NodeEnvironment]
     when(nodeEnv.hasNodeFile).thenReturn(false)
     val indexService = mock[IndexService]

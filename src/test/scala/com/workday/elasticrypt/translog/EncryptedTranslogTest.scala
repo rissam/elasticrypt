@@ -93,9 +93,9 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
     eft.newTranslog(12345L)
 
     val op = new Translog.Create("type1", "id1", Seq(0.toByte).toArray[Byte])
-    verify(requester, times(1)).getKey("test")
+    verify(requester, times(0)).getKey("test")
     eft.add(op) shouldBe an[Translog.Location]
-    verify(requester, times(2)).getKey("test")
+    verify(requester, times(1)).getKey("test")
   }
 
 }

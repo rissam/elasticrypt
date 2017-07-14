@@ -3,9 +3,9 @@ package org.elasticsearch.index.store
 import java.io.{File, PrintWriter, RandomAccessFile}
 import javax.crypto.spec.SecretKeySpec
 
-import com.workday.elasticrypt.{HardcodedKeyProvider, KeyProvider}
-import org.apache.lucene.util.{AESReader, FileHeader, HmacUtil}
+import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.store.{FlushInfo, IOContext, LockFactory}
+import org.apache.lucene.util.{AESReader, FileHeader, HmacUtil}
 import org.elasticsearch.client.Client
 import org.elasticsearch.common.collect.ImmutableMap
 import org.elasticsearch.common.settings.Settings
@@ -14,9 +14,27 @@ import org.elasticsearch.index.shard.ShardId
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 
-class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
+class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+
+  val indexName = "test"
+  val fileName = "/tmp/edt_test"
+  val f = new File(fileName)
+
+  override def beforeEach = {
+    if (f.exists()) {
+      f.delete()
+    }
+    super.beforeEach()
+  }
+
+  override def afterEach = {
+    if (f.exists()) {
+      f.delete()
+    }
+    super.afterEach()
+  }
 
   def getMockShardId = {
     val mockShardId = mock[ShardId]
@@ -46,7 +64,7 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     val path = new File("/tmp")
     val context = new IOContext(new FlushInfo(1, 1))
     val settings = mock[Settings]
-    when(settings.get("url")).thenReturn("test") // TODO: symanurl?
+    when(settings.get("url")).thenReturn("test")
     when(settings.getAsMap).thenReturn(ImmutableMap.of("url", "test"))
 
     val ed = spy(new EncryptedDirectory(path, mock[LockFactory], getMockShardId, mock[Client], mock[NodeKeyProviderComponent]))
@@ -73,7 +91,7 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     val path = new File("/tmp")
     val context = new IOContext(new FlushInfo(1, 1))
     val settings = mock[Settings]
-    when(settings.get("url")).thenReturn("test") // TODO: symanurl?
+    when(settings.get("url")).thenReturn("test")
     when(settings.getAsMap).thenReturn(ImmutableMap.of("url", "test"))
 
     val component = mock[NodeKeyProviderComponent]
@@ -91,9 +109,8 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     val secretKeySpec = new SecretKeySpec(encodedKeyBytes, 0, encodedKeyBytes.length, HmacUtil.DATA_CIPHER_ALGORITHM)
 
     val path = new File("/tmp")
-//    val context = new IOContext(new FlushInfo(1, 1))
     val settings = mock[Settings]
-    when(settings.get("url")).thenReturn("test") // TODO: symanurl?
+    when(settings.get("url")).thenReturn("test")
     when(settings.getAsMap).thenReturn(ImmutableMap.of("url", "test"))
 
     val nodeKeyProviderComponent = mock[NodeKeyProviderComponent]
@@ -102,20 +119,14 @@ class EncryptedDirectoryTest extends FlatSpec with Matchers with MockitoSugar {
     doReturn(secretKeySpec).when(keyProvider).getKey("test")
     val ed = spy(new EncryptedDirectory(path, mock[LockFactory], getMockShardId, mock[Client], nodeKeyProviderComponent))
 
-    val f = new File("/tmp/edt_test")
-    if (f.exists()) {
-      f.delete()
-    }
-
     val testData = "READ_WRITE_TEST"
 
-    val aesWriter = ed.createAESWriter(path, new  RandomAccessFile(f, "rw"), 8192, keyProvider, mock[FileHeader])
+    val aesWriter = ed.createAESWriter(f, new  RandomAccessFile(f, "rw"), 8192, keyProvider, mock[FileHeader])
 
     aesWriter.write(testData.map(_.toByte).toArray[Byte], 0, testData.length)
     aesWriter.close()
 
-    val pathTest = new File("/tmp/edt_test")
-    val aesReader = ed.createAESReader(pathTest, new RandomAccessFile(pathTest, "r"), 8192, keyProvider, mock[FileHeader])
+    val aesReader = ed.createAESReader(f, new RandomAccessFile(f, "r"), 8192, keyProvider, mock[FileHeader])
     val bytes = new Array[Byte](testData.length)
     aesReader.read(bytes)
     aesReader.close()

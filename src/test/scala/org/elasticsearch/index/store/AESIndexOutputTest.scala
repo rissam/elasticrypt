@@ -19,7 +19,6 @@ class AESIndexOutputTest extends FlatSpec with Matchers with MockitoSugar {
     def closeHandler(name: String) = { counter += 1 }
     def createAESWriter(dir: File, name: String, pageSize: Int) = { writer }
 
-
     val output = new AESIndexOutput(dir, "test", 100, closeHandler, createAESWriter)
 
     val bytes = (1 to 10000).map(_.toByte).toArray[Byte] // We need more data than 8192 byte write buffer

@@ -4,7 +4,6 @@ import sbt.Keys.{name, resourceGenerators, version, _}
 import sbt._
 import sbtassembly.Plugin.AssemblyKeys._
 
-
 val assembleZip = TaskKey[File]("assembleZip")
 val zipArtifact = SettingKey[Artifact]("zipArtifact")
 

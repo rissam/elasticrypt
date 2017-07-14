@@ -7,6 +7,7 @@ import javax.crypto.spec.SecretKeySpec
 
 import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.util.HmacUtil
+import org.scalatest.BeforeAndAfterEach
 
 //scalastyle: off
 import scala.collection.mutable._
@@ -18,61 +19,57 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 
-class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar {
+class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
-  def getIndexName: String = "test"
+  val indexName = "test"
+  val fileName = "/tmp/efc_test"
+  val f = new File(fileName)
+
+  override def beforeEach = {
+    if (f.exists()) {
+      f.delete()
+    }
+    super.beforeEach()
+  }
+
+  override def afterEach = {
+    if (f.exists()) {
+      f.delete()
+    }
+    super.afterEach()
+  }
 
   def getMockKeyProvider = {
     val keyProvider = mock[KeyProvider]
     val encodedKeyBytes = (1 to 32).map(_.toByte).toArray
     val secretKeySpec = new SecretKeySpec(encodedKeyBytes, 0, encodedKeyBytes.length, HmacUtil.DATA_CIPHER_ALGORITHM)
-    when(keyProvider.getKey(getIndexName)).thenReturn(secretKeySpec)
+    when(keyProvider.getKey(indexName)).thenReturn(secretKeySpec)
     keyProvider
   }
 
-  def getMockChannel = new EncryptedFileChannel(new File("test"), 10, getMockKeyProvider, getIndexName)
+  def getMockChannel = new EncryptedFileChannel(new File("test"), 10, getMockKeyProvider, indexName)
 
   behavior of "#reader & #writer"
   it should "return an AESReader and AESWriter" in {
-    val fileStart = new File("/tmp/edt_test") // TODO: remove this once the test has been run with fileCleanup below
-    if (fileStart.exists()) {
-      fileStart.delete()
-    }
-
-    val efc_writer = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "rw"), 10, getMockKeyProvider, getIndexName)
+    val efc_writer = new EncryptedFileChannel("test", new RandomAccessFile(fileName, "rw"), 10, getMockKeyProvider, indexName)
     val testData = "READ_WRITE_TEST"
     val aesWriter = efc_writer.writer
     aesWriter.write(testData.map(_.toByte).toArray[Byte], 0, testData.length)
     aesWriter.close()
 
-    val efc_reader = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/edt_test", "r"), 10, getMockKeyProvider, getIndexName)
+    val efc_reader = new EncryptedFileChannel("test", new RandomAccessFile(fileName, "r"), 10, getMockKeyProvider, indexName)
     val aesReader = efc_reader.reader
     val bytes = new Array[Byte](testData.length)
     aesReader.read(bytes)
     aesReader.close()
 
     bytes shouldBe testData.map(_.toByte).toArray[Byte]
-
-    val fileCleanup = new File("/tmp/edt_test")
-    if (fileCleanup.exists()) {
-      fileCleanup.delete()
-    }
   }
 
   behavior of "#EncryptedFileChannel"
   it should "instantiate from File" in {
-    val fileStart = new File("/tmp/efc_test") // TODO: remove this once the test has been run with fileCleanup below
-    if (fileStart.exists()) {
-      fileStart.delete()
-    }
-
-    val efc = new EncryptedFileChannel("test", new RandomAccessFile("/tmp/efc_test", "rw"), 10, getMockKeyProvider, getIndexName)
+    val efc = new EncryptedFileChannel("test", new RandomAccessFile(fileName, "rw"), 10, getMockKeyProvider, indexName)
     efc.writer.length() shouldBe 0
-
-    val fileCleanup = new File("/tmp/efc_test")
-    if (fileCleanup.exists()) {
-      fileCleanup.delete()
-    }
   }
 
   behavior of "#tryLock"
