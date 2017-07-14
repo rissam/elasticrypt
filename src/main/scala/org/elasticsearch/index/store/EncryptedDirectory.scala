@@ -9,7 +9,6 @@ package org.elasticsearch.index.store
 
 // scalastyle:off underscore.import
 import java.io._
-
 import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.store._
 import org.apache.lucene.util.{AESReader, AESWriter, FileHeader, HmacFileHeader}
@@ -20,7 +19,6 @@ import org.apache.lucene.index.IndexFileNames
 import org.elasticsearch.client.Client
 import org.elasticsearch.common.logging.{ESLogger, ESLoggerFactory}
 import org.elasticsearch.index.shard.ShardId
-
 
 /**
   * This class extends org.apache.lucene.store.NIOFSDirectory and overrides createOutput() and openInput()

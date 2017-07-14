@@ -82,7 +82,7 @@ public class AESWriter
     /* Encryption Key */
     private SecretKeySpec key;
     /* Encryption Key ID */
-    private String keyId;
+    private String indexName;
     /* Used to generate initialization vectors */
     private KeyGenerator ivgen;
     /* Number of blocks(based on BLOCKSIZE = 16 bytes) per page */
@@ -120,16 +120,16 @@ public class AESWriter
       * @param raf File to create.
       * @param page_size Number of 16-byte blocks per page.
       * @param keyProvider Encryption Key information getter.
-      * @param keyId
+      * @param indexName
       * @param fileHeader
       */
-    public AESWriter(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String keyId, FileHeader fileHeader) throws Exception
+    public AESWriter(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String indexName, FileHeader fileHeader) throws Exception
     {
         try {
             this.name = name;
             this.raf = raf;
             this.keyProvider = keyProvider;
-            this.keyId = keyId;
+            this.indexName = indexName;
             this.fileHeader = fileHeader;
 
            /* Only allow writing on new files. Lucene specifies that a new writer
@@ -175,7 +175,7 @@ public class AESWriter
                 /* Set the header offset to be the size of bytes written for the header.*/
                 this.header_offset = this.fileHeader.writeHeader();
 
-                this.key = keyProvider.getKey(this.keyId);
+                this.key = keyProvider.getKey(this.indexName);
 
                 /* Initialize the ciphers. We should clean this up depending on the mode.*/
                 this.ivgen = KeyGenerator.getInstance("AES");

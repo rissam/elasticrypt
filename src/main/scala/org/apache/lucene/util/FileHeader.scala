@@ -14,7 +14,7 @@ import java.io.RandomAccessFile
   */
 abstract class FileHeader(raf: RandomAccessFile) {
   // scalastyle:off null
-  var keyIdBytes: Array[Byte] = null
+  var indexNameBytes: Array[Byte] = null
   // scalastyle:on null
 
   /**

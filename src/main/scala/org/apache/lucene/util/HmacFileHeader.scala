@@ -26,9 +26,9 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName:
     * Writes the file header.
     */
   def writeHeader(): Long = {
-    // Write keyId
-    keyIdBytes = indexName.getBytes
-    writeByteArray(keyIdBytes)
+    // Write index name
+    indexNameBytes = indexName.getBytes
+    writeByteArray(indexNameBytes)
 
     // Write plaintext bytes
     val numBytes = 8
@@ -57,7 +57,7 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName:
   def readHeader(): Unit = {
     raf.seek(0)
 
-    keyIdBytes = readBytesFromCurrentFilePointer
+    indexNameBytes = readBytesFromCurrentFilePointer
     plainTextBytes = readBytesFromCurrentFilePointer
     hmacBytes = readBytesFromCurrentFilePointer
   }
