@@ -22,15 +22,38 @@ import org.elasticsearch.threadpool.ThreadPool
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 
-class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
+class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+
+  val indexName = "test"
+  val fileName = "/tmp/eft_test"
+  val f = new File(fileName)
+
+  override def beforeEach = {
+    if (f.exists()) {
+      f.delete()
+    }
+    super.beforeEach()
+  }
+
+  override def afterEach = {
+    if (f.exists()) {
+      f.delete()
+    }
+    super.afterEach()
+  }
+
+  def getMockShard = {
+    val shard = mock[ShardId]
+    doReturn(mock[Index]).when(shard).index
+    doReturn(indexName).when(shard).getIndex
+    doReturn(123).when(shard).id()
+    shard
+  }
 
   def getEFT = {
-    val shard = mock[ShardId]
-    doReturn(mock[Index]).when(shard).index()
-    doReturn(123).when(shard).id()
-
+    val shard = getMockShard
     val indexStore = mock[IndexStore]
     val path = mock[Path]
     doReturn(Array(path)).when(indexStore).shardTranslogLocations(any[ShardId])
@@ -50,28 +73,17 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
 
   behavior of "#createRafReference"
   it should "create EncryptedRafReference" in {
-    val file = new File("/tmp/eft_test")
-    val logger = mock[ESLogger]
-
-    val eft = getEFT
-    eft.createRafReference(file, logger) shouldBe an[EncryptedRafReference]
+    getEFT.createRafReference(f, mock[ESLogger]) shouldBe an[EncryptedRafReference]
   }
 
   behavior of "#translogStreamFor"
   it should "create EncryptedTranslogStream" in {
-    val eft = getEFT
-
-    val file = new File("/tmp/eft_test")
-    eft.translogStreamFor(file) shouldBe an[EncryptedTranslogStream]
+    getEFT.translogStreamFor(f) shouldBe an[EncryptedTranslogStream]
   }
 
   behavior of "#add"
   it should "request the key" in {
-    val shard = mock[ShardId]
-    doReturn(mock[Index]).when(shard).index
-    doReturn("test").when(shard).getIndex
-    doReturn(123).when(shard).id()
-
+    val shard = getMockShard
     val settings = ImmutableSettings.builder().build()
     val indexStore = mock[RamIndexStore]
     val threadPool = new ThreadPool(settings)
@@ -88,14 +100,14 @@ class EncryptedTranslogTest extends FlatSpec with Matchers with MockitoSugar {
 
     val keyBytes = (1 to 32).map(_.toByte).toArray[Byte]
     val keySpec = new SecretKeySpec(keyBytes, "AES")
-    doReturn(keySpec).when(requester).getKey("test")
+    doReturn(keySpec).when(requester).getKey(indexName)
 
     eft.newTranslog(12345L)
 
     val op = new Translog.Create("type1", "id1", Seq(0.toByte).toArray[Byte])
-    verify(requester, times(0)).getKey("test")
+    verify(requester, times(0)).getKey(indexName)
     eft.add(op) shouldBe an[Translog.Location]
-    verify(requester, times(1)).getKey("test")
+    verify(requester, times(1)).getKey(indexName)
   }
 
 }
