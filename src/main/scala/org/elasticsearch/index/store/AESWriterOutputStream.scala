@@ -20,7 +20,14 @@ class AESWriterOutputStream(writer: AESWriter) extends OutputStream {
     writer.write(b, off, len)
   }
 
+  /**
+    * Writes any data in the buffer to disk with any additional padding needed.
+    */
   override def flush(): Unit = writer.flush()
 
+  /**
+    * Encrypts and flushes all remaining data from the buffer cache to disk, pads the file,
+    * and then closes the underlying file stream.
+    */
   override def close(): Unit = writer.close()
 }

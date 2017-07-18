@@ -18,9 +18,15 @@ import java.io.{FilterOutputStream, OutputStream}
 
 // This logic is factored out from the AESDirectory patch
 private[store] class ChunkedOutputStream(os: OutputStream, chunkSize: Int) extends FilterOutputStream(os) {
-  // This implementation ensures, that we never write more than CHUNK_SIZE bytes:
-  // throws IOException
 
+  /**
+    * Writes chunk by chunk. Ensures that we never write more than CHUNK_SIZE bytes.
+    * @param b Array of bytes to write.
+    * @param offset Offset in the data.
+    * @param length Number of bytes to write.
+    */
+  @throws [IndexOutOfBoundsException]
+  @throws [NullPointerException]
   override def write(b: Array[Byte], offset: Int, length: Int) {
     var l = length
     var o = offset

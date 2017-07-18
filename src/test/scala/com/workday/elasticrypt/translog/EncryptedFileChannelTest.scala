@@ -22,8 +22,9 @@ import org.scalatest.{FlatSpec, Matchers}
 class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   val indexName = "test"
-  val fileName = "/tmp/efc_test"
-  val f = new File(fileName)
+  val fileName = "test"
+  val absolutePathFileName = "/tmp/efc_test"
+  val f = new File(absolutePathFileName)
 
   override def beforeEach = {
     if (f.exists()) {
@@ -51,13 +52,13 @@ class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar 
 
   behavior of "#reader & #writer"
   it should "return an AESReader and AESWriter" in {
-    val efc_writer = new EncryptedFileChannel("test", new RandomAccessFile(fileName, "rw"), 10, getMockKeyProvider, indexName)
+    val efc_writer = new EncryptedFileChannel(fileName, new RandomAccessFile(absolutePathFileName, "rw"), 10, getMockKeyProvider, indexName)
     val testData = "READ_WRITE_TEST"
     val aesWriter = efc_writer.writer
     aesWriter.write(testData.map(_.toByte).toArray[Byte], 0, testData.length)
     aesWriter.close()
 
-    val efc_reader = new EncryptedFileChannel("test", new RandomAccessFile(fileName, "r"), 10, getMockKeyProvider, indexName)
+    val efc_reader = new EncryptedFileChannel(fileName, new RandomAccessFile(absolutePathFileName, "r"), 10, getMockKeyProvider, indexName)
     val aesReader = efc_reader.reader
     val bytes = new Array[Byte](testData.length)
     aesReader.read(bytes)
@@ -68,7 +69,7 @@ class EncryptedFileChannelTest extends FlatSpec with Matchers with MockitoSugar 
 
   behavior of "#EncryptedFileChannel"
   it should "instantiate from File" in {
-    val efc = new EncryptedFileChannel("test", new RandomAccessFile(fileName, "rw"), 10, getMockKeyProvider, indexName)
+    val efc = new EncryptedFileChannel(fileName, new RandomAccessFile(absolutePathFileName, "rw"), 10, getMockKeyProvider, indexName)
     efc.writer.length() shouldBe 0
   }
 

@@ -21,6 +21,7 @@ abstract class FileHeader(raf: RandomAccessFile) {
     * Writes the file header.
     */
   def writeHeader(): Long
+
   /**
     * Reads the file header.
     */
