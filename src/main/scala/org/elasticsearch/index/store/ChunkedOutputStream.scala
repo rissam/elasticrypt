@@ -21,12 +21,12 @@ private[store] class ChunkedOutputStream(os: OutputStream, chunkSize: Int) exten
 
   /**
     * Writes chunk by chunk. Ensures that we never write more than CHUNK_SIZE bytes.
+    * @throws IndexOutOfBoundsException
+    * @throws NullPointerException
     * @param b Array of bytes to write.
     * @param offset Offset in the data.
     * @param length Number of bytes to write.
     */
-  @throws [IndexOutOfBoundsException]
-  @throws [NullPointerException]
   override def write(b: Array[Byte], offset: Int, length: Int) {
     var l = length
     var o = offset
