@@ -36,10 +36,17 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
 
   private[this] val indexName = shardId.getIndex
 
-  // Override this to customize file header
+  /**
+    * Returns a FileHeader. This method is currently hardcoded to return a HmacFileHeader.
+    * The user can rewrite or override this method to customize the FileHeader.
+    * @param raf file pointer
+    */
   protected[this] def buildFileHeader(raf: RandomAccessFile): FileHeader = new HmacFileHeader(raf, component.keyProvider, indexName)
 
-  /** Creates an IndexOutput for the file with the given name. */
+  /** Creates and returns an IndexOutput for the file with the given name.
+    * @param name file name
+    * @param context TODO
+    */
   @throws[IOException]
   override def createOutput(name: String, context: IOContext): IndexOutput = {
     if (isSegmentMetadataFile(name)) {
@@ -60,7 +67,10 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     }
   }
 
-  /** Creates an IndexInput for the file with the given name. */
+  /** Creates and returns an IndexInput for the file with the given name.
+    * @param name file name
+    * @param context TODO
+    */
   @throws[IOException]
   override def openInput(name: String, context: IOContext): IndexInput = {
     if (isSegmentMetadataFile(name)) {
@@ -76,7 +86,10 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     }
   }
 
-  /** Checks for the metadata file. */
+  /** Checks for the metadata file.
+    * @param fileName name of the file
+    * @return true if the file exists; false otherwise
+    */
   private def isSegmentMetadataFile(fileName: String): Boolean = {
     fileName == IndexFileNames.SEGMENTS_GEN ||
       fileName.startsWith(IndexFileNames.SEGMENTS + "_") ||
@@ -84,12 +97,24 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
       fileName.endsWith("." + Lucene46SegmentInfoFormat.SI_EXTENSION)
   }
 
-  /** Creates an AES Writer. */
+  /** Creates and returns an AESWriter.
+    * @param path File to use
+    * @param raf file to create
+    * @param pageSize number of 16-byte blocks per page
+    * @param keyProvider encryption key information getter
+    * @param fileHeader creates the file header
+    */
   protected[store] def createAESWriter(path: File, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, fileHeader: FileHeader) = {
     new AESWriter(path.getName, raf, pageSize, keyProvider, indexName, fileHeader)
   }
 
-  /** Creates an AES Reader. */
+  /** Creates and returns an AESReader.
+    * @param path File to use
+    * @param raf file to create
+    * @param pageSize number of 16-byte blocks per page
+    * @param keyProvider encryption key information getter
+    * @param fileHeader creates the file header
+    */
   protected[store] def createAESReader(path: File, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, fileHeader: FileHeader) = {
     new AESReader(path.getName, raf, pageSize, keyProvider, indexName, fileHeader)
   }
