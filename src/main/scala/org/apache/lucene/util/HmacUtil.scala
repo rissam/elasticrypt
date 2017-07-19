@@ -29,9 +29,8 @@ object HmacUtil {
 
   /**
     * Returns a Base64-encoded HMAC of the given plaintext bytes using the provided SecretKey.
-    * @param plaintext
-    * @param key Encryption key
-    * @return
+    * @param plaintext data to be encrypted
+    * @param key encryption key
     */
   def hmacValue(plaintext: Array[Byte], key: SecretKey): Array[Byte] = {
     try {
@@ -67,9 +66,8 @@ object HmacUtil {
 
   /**
     * Throw exception based on the error.
-    * @param msg Message to be sent with the exception
-    * @param ex Exception to be thrown
-    * @return CryptoException
+    * @param msg message to be sent with the exception
+    * @param ex exception to be thrown
     */
   private[this] def error(msg: String, ex: Option[Throwable] = None) = ex match {
     case Some(e) => throw new CryptoException(s"$HMAC_ERROR_PREFIX$msg", e)
@@ -77,9 +75,8 @@ object HmacUtil {
   }
 
   /**
-    * Generate bytes.
-    * @param numBytes
-    * @return
+    * Generate and return random bytes.
+    * @param numBytes number of random bytes wanted
     */
   def generateRandomBytes(numBytes: Int): Array[Byte] = {
     val randomBytes: Array[Byte] = new Array[Byte](numBytes)

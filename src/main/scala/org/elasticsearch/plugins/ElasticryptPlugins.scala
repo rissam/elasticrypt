@@ -29,7 +29,7 @@ class ElasticryptPlugins extends AbstractPlugin {
   override def description(): String = "An Elasticsearch plug-in that provides tenanted encryption at rest."
 
   /**
-    * TODO
+    * Returns EncryptedNodeModule.
     */
   override def modules(): util.Collection[Class[_ <: Module]] = Collections.singletonList(classOf[EncryptedNodeModule])
 }
