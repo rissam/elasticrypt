@@ -379,9 +379,9 @@ public class AESWriter
                 this.modified = true;
 
                 int bufferLength = b.limit() - b.position();
-                //Minimum of len and available is the number of bytes to write
+                // Minimum of len and available is the number of bytes to write
                 _len = (int)Math.min(bufferLength, this.page_size_in_bytes - this.buffer_pos);
-                //System.arraycopy(b, off, this.buffer, this.buffer_pos, _len);
+                // System.arraycopy(b, off, this.buffer, this.buffer_pos, _len);
                 b.get(this.buffer, this.buffer_pos, _len);
 
                 if(this.cur_fp + _len > this.end){

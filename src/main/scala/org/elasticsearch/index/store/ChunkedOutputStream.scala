@@ -10,7 +10,7 @@ package org.elasticsearch.index.store
 import java.io.{FilterOutputStream, OutputStream}
 
 /**
-  * Much of this code is based on the existing implementation in FSDirectory
+  * Much of this code is based on the existing implementation in FSDirectory.
   *
   * https://www.elastic.co/guide/en/elasticsearch/reference/1.7/index-modules.html
   * https://github.com/apache/lucene-solr/blob/master/lucene/core/src/java/org/apache/lucene/store/FSDirectory.java#L412
@@ -21,8 +21,8 @@ private[store] class ChunkedOutputStream(os: OutputStream, chunkSize: Int) exten
 
   /**
     * Writes chunk by chunk. Ensures that we never write more than CHUNK_SIZE bytes.
-    * @throws IndexOutOfBoundsException
-    * @throws NullPointerException
+    * @throws IndexOutOfBoundsException if offset and length are not reasonable.
+    * @throws NullPointerException if b is null.
     * @param b Array of bytes to write.
     * @param offset Offset in the data.
     * @param length Number of bytes to write.

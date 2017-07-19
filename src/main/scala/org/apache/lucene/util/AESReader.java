@@ -124,19 +124,19 @@ public class AESReader
            this.cur_iv = new byte[BLOCKSIZE];
            this.page_size = page_size;
 
-           //check padding and determine end(file length)
-           /* Read the last Page.*/
+           /* Check padding and determine end (file length) */
+           /* Read the last page. */
            this.raf.seek(Math.max(this.raf.length() - page_size_in_bytes, this.header_offset));
 
-           /* Initialize the Initialization Vector for the last page by reading it from the file.*/
+           /* Initialize the Initialization Vector for the last page by reading it from the file. */
            this.raf.readFully(this.cur_iv);
 
-           /* Read encrypted text from the file into the buffer cache and decrypt it.*/
+           /* Read encrypted text from the file into the buffer cache and decrypt it. */
            nread = this.raf.read(buffer);
            dcipher.init(Cipher.DECRYPT_MODE, this.key, new IvParameterSpec(this.cur_iv));
            buf_size = dcipher.doFinal(buffer, 0, nread, buffer, 0);
 
-           /* Ensure that the padding is correct.*/
+           /* Ensure that the padding is correct. */
            if (buf_size != nread)
                throw new IOException("Not enough bytes decrypted");
 
@@ -155,7 +155,7 @@ public class AESReader
 
            }
 
-           /* Determine the end of the file after removing padding bytes.*/
+           /* Determine the end of the file after removing padding bytes. */
            long blocks = (this.raf.length() - this.header_offset) / BLOCKSIZE - 1;
            long pageivs = blocks / (page_size + 1) + 1;
            this.end = this.raf.length() - no_padding - (pageivs * BLOCKSIZE) - this.header_offset;
@@ -232,7 +232,6 @@ public class AESReader
          return -1;
 
       return (int) b[0] & 0xFF;
-
    }
 
    /**
@@ -250,10 +249,9 @@ public class AESReader
       return this.read(b, 0,b.length);
    }
 
-
    /**
-     * Read bytes from the file into the given byte array
-     * @param b byte array to copy bytes to
+     * Read bytes from the file into the given byte array.
+     * @param b The buffer into which bytes are to be transferred
      * @param offset position in b to start copying data
      * @param len number of bytes to copy to the given byte array
      * @return -1 if eof has been reached, the number of bytes copied into b otherwise.
@@ -269,9 +267,9 @@ public class AESReader
    }
 
     /**
-      * TODO
-      * @param dst
-      * @return int
+      * Read bytes from the file into the given byte array.
+      * @param dst The buffer into which bytes are to be transferred
+      * @return -1 if eof has been reached, the number of bytes copied into b otherwise.
       */
     public int read(ByteBuffer dst) throws IOException,
             javax.crypto.ShortBufferException,
@@ -288,18 +286,18 @@ public class AESReader
 
       synchronized(lock){
          int remaining = len;
-         /* Time to get next page when position in the buffer is geq its length */
+         /* Time to get next page when position in the buffer is geq its length. */
          if(bufferPosition >= bufferLength)
             refill();
 
          if(len <= bufferLength - bufferPosition){
-             /* Enough bytes in the buffer cache to fill the request buffer...just copy them to b */
+             /* Enough bytes in the buffer cache to fill the request buffer...just copy them to b. */
              dst.put(buffer, bufferPosition, len);
             bufferPosition += len;
             filePos += len;
             remaining = 0;
          }else{
-             /* Will need to start loading next pages to read len bytes */
+             /* Will need to start loading next pages to read len bytes. */
             while(remaining > 0 && filePos < end){
                int available = bufferLength - bufferPosition;
                /* If bytes are available in the buffer cache then, copy them to the request buffer.*/
@@ -317,7 +315,6 @@ public class AESReader
                }
             }
          }
-
          return len - remaining;
       }
    }
@@ -325,7 +322,7 @@ public class AESReader
    /**
      * Sets the virtual file pointer so that the next byte read will be at pos.
      * Seeking past the end of the file is not allowed.
-     * @param pos position to seek to.
+     * @param pos position to seek to
      */
    public void seek(long pos) throws IOException,
            javax.crypto.ShortBufferException,
@@ -334,14 +331,13 @@ public class AESReader
            java.security.InvalidKeyException,
            java.security.InvalidAlgorithmParameterException
    {
-      /* flush buffer */
+      // flush buffer
       if(pos >= end || pos < 0){
          throw new RuntimeException("Pos: " + pos + " end: " + end + " file: " + name);
       }
       synchronized(lock){
          this.filePos = pos;
          refill();
-
       }
    }
 
@@ -360,27 +356,25 @@ public class AESReader
       int buf_size;
       int nread;
 
-      /* Get the address which accounts for encryption IV/page.*/
+      /* Get the address which accounts for encryption IV/page. */
       long strt_addr = encryptedAddrToPhysicalAddr(this.filePos);
 
-      /* set bufferStart to the first byte of the IV of the page that contains
-       * filePos.
-       */
+      /* Set bufferStart to the first byte of the IV of the page that contains filePos. */
       this.bufferStart = strt_addr/((long)page_size*BLOCKSIZE + BLOCKSIZE);
       this.bufferStart *= ((long)page_size*BLOCKSIZE + BLOCKSIZE);
 
       /* Seek to the IV by adding the header offset. */
       this.raf.seek(bufferStart + this.header_offset);
-      /* Update the bufferStart to take the IV size into account.*/
+      /* Update the bufferStart to take the IV size into account. */
       this.bufferStart += BLOCKSIZE;
 
-      /* Read the IV */
+      /* Read the IV. */
       this.raf.readFully(this.cur_iv);
 
       /* Initialize the cipher with the IV that was read. */
       this.dcipher.init(Cipher.DECRYPT_MODE,this.key,new IvParameterSpec(this.cur_iv));
 
-      /* Read and decrypt the cipher text into the buffer cache.*/
+      /* Read and decrypt the cipher text into the buffer cache. */
       nread = this.raf.read(buffer);
       buf_size = dcipher.doFinal(buffer,0,nread,buffer,0);
 

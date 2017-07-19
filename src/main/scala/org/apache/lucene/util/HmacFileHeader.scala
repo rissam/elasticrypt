@@ -45,6 +45,7 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName:
 
   /**
     * Writes the byte array.
+    * @param byteArray
     */
   private def writeByteArray(byteArray: Array[Byte]) {
     raf.writeInt(byteArray.length)
@@ -64,6 +65,7 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName:
 
   /**
     * Read current bytes.
+    * @return
     */
   @throws[java.io.IOException]
   private def readBytesFromCurrentFilePointer: Array[Byte] = {

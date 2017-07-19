@@ -31,6 +31,10 @@ class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProv
 
   refCount.incrementAndGet()
 
+  /**
+    * Override
+    * @return
+    */
   override def channel(): FileChannel = {
     this.encryptedFileChannel
   }
@@ -62,6 +66,10 @@ class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProv
     }
   }
 
+  /** Override
+    *
+    * @return
+    */
   @Override
   def translogStreamFor: TranslogStream = {
     new EncryptedTranslogStream(pageSize, keyProvider, indexName)
