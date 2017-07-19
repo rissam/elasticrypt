@@ -2,12 +2,15 @@ package org.apache.lucene.util;
 
 import com.workday.elasticrypt.KeyProvider;
 
-import javax.crypto.Cipher;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 /**
   * AESReader provides the ability to read an AES encrypted random access file.
@@ -77,7 +80,7 @@ public class AESReader
     /* Name of file */
     private final String name;
     /* Key ID used to retrieve key */
-    private String keyId;
+    private String indexName;
 
    /**
      * @constructor
@@ -86,17 +89,17 @@ public class AESReader
      * @param raf File to read.
      * @param page_size Number of 16-byte blocks per page. Must be the same number used when writing the file.
      * @param keyProvider Getter for key used to initialize the ciphers.
-     * @param keyId Used to retrieve the key using keyProvider.
+     * @param indexName Used to retrieve the key using keyProvider.
      * @param fileHeader Creates the file header.
      */
-   public AESReader(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String keyId, FileHeader fileHeader) throws IOException,
-          java.security.NoSuchAlgorithmException,
-          java.security.InvalidKeyException,
-          javax.crypto.ShortBufferException,
-          javax.crypto.NoSuchPaddingException,
-          java.security.InvalidAlgorithmParameterException,
-          javax.crypto.IllegalBlockSizeException,
-          javax.crypto.BadPaddingException
+   public AESReader(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String indexName, FileHeader fileHeader) throws IOException,
+          NoSuchAlgorithmException,
+          InvalidKeyException,
+          ShortBufferException,
+          NoSuchPaddingException,
+          InvalidAlgorithmParameterException,
+          IllegalBlockSizeException,
+          BadPaddingException
    {
        long page_size_in_bytes;
        int nread;
@@ -107,13 +110,13 @@ public class AESReader
        try {
            this.name = name;
            this.raf = raf;
-           this.keyId = keyId;
+           this.indexName = indexName;
            this.fileHeader = fileHeader;
            /* Read the file header.*/
            this.readFileHeader();
 
            /* Retrieve the key based on the index obtained via the shard.*/
-           this.key = keyProvider.getKey(keyId);
+           this.key = keyProvider.getKey(indexName);
 
            page_size_in_bytes = page_size * BLOCKSIZE;
            this.dcipher = Cipher.getInstance("AES/CBC/NoPadding");

@@ -15,7 +15,7 @@ import com.workday.elasticrypt.KeyProvider
   * Implementation of the FileHeader interface that adds a MAC hash that is
   * used to verify that the correct key is being used to decrypt a file.
   */
-class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: String) extends FileHeader(raf) {
+class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName: String) extends FileHeader(raf) {
 
   // scalastyle:off null
   private var hmacBytes: Array[Byte] = null
@@ -26,9 +26,9 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: Str
     * Writes the file header.
     */
   def writeHeader(): Long = {
-    // Write keyId
-    keyIdBytes = keyId.getBytes
-    writeByteArray(keyIdBytes)
+    // Write index name
+    indexNameBytes = indexName.getBytes
+    writeByteArray(indexNameBytes)
 
     // Write plaintext bytes
     val numBytes = 8
@@ -36,7 +36,7 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: Str
     writeByteArray(plainTextBytes)
 
     // Write HMAC bytes
-    hmacBytes = HmacUtil.hmacValue(plainTextBytes, keyProvider.getKey(keyId))
+    hmacBytes = HmacUtil.hmacValue(plainTextBytes, keyProvider.getKey(indexName))
     writeByteArray(hmacBytes)
 
     // return the current file pointer (i.e. header offset)
@@ -57,7 +57,7 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, keyId: Str
   def readHeader(): Unit = {
     raf.seek(0)
 
-    keyIdBytes = readBytesFromCurrentFilePointer
+    indexNameBytes = readBytesFromCurrentFilePointer
     plainTextBytes = readBytesFromCurrentFilePointer
     hmacBytes = readBytesFromCurrentFilePointer
   }

@@ -19,7 +19,7 @@ import org.apache.lucene.util.{AESReader, AESWriter, HmacFileHeader}
   * Extension of java.nio.channels.FileChannel that instantiates an AESReader and AESWriter to encrypt all reads and writes.
   * Utilized in EncryptedRafReference and EncryptedTranslogStream.
   */
-class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, keyId: String)
+class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, indexName: String)
   extends FileChannel {
   /**
     * Two issues here:
@@ -30,12 +30,12 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
     * Simply using lazy here seems too easy.
     */
 
-  private[translog] lazy val fileHeader = new HmacFileHeader(raf, keyProvider, keyId)
-  private[translog] lazy val reader = new AESReader(name, raf, pageSize, keyProvider, keyId, fileHeader)
-  private[translog] lazy val writer = new AESWriter(name, raf, pageSize, keyProvider, keyId, fileHeader)
+  private[translog] lazy val fileHeader = new HmacFileHeader(raf, keyProvider, indexName)
+  private[translog] lazy val reader = new AESReader(name, raf, pageSize, keyProvider, indexName, fileHeader)
+  private[translog] lazy val writer = new AESWriter(name, raf, pageSize, keyProvider, indexName, fileHeader)
 
-  def this(file: File, pageSize: Int, keyProvider: KeyProvider, keyId: String) =
-    this(file.getName(), new RandomAccessFile(file, "rw"), pageSize, keyProvider, keyId)
+  def this(file: File, pageSize: Int, keyProvider: KeyProvider, indexName: String) =
+    this(file.getName(), new RandomAccessFile(file, "rw"), pageSize, keyProvider, indexName)
 
   override def tryLock(position: Long, size: Long, shared: Boolean): FileLock =
     throw new UnsupportedOperationException
