@@ -28,6 +28,11 @@ class EncryptedDirectoryService @Inject() (shardId: ShardId,
                                            component: NodeKeyProviderComponent)
   extends FsDirectoryService(shardId, indexSettings, indexStore) {
 
+  /**
+    * Returns an EncryptedDirectory.
+    * @param location path of the directory
+    * @param lockFactory the lock factory to use, or null for the default
+    */
   override def newFSDirectory(location: File, lockFactory: LockFactory): Directory = {
     new EncryptedDirectory(location, lockFactory, shardId, client, component)
   }

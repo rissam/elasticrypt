@@ -15,6 +15,9 @@ import org.elasticsearch.index.store.NodeKeyProviderComponent
   */
 class EncryptedNodeModule extends AbstractModule {
   //$COVERAGE-OFF$
+  /**
+    * TODO
+    */
   override protected def configure(): Unit = {
     bind(classOf[NodeKeyProviderComponent]).in(classOf[Singleton])
   }

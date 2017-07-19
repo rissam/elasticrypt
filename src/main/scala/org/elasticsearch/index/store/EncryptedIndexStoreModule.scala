@@ -14,6 +14,9 @@ import org.elasticsearch.common.inject.AbstractModule
   */
 class EncryptedIndexStoreModule extends AbstractModule {
   //$COVERAGE-OFF$f
+  /**
+    * TODO
+    */
   override protected def configure(): Unit = {
     bind(classOf[IndexStore]).to(classOf[EncryptedIndexStore]).asEagerSingleton()
   }

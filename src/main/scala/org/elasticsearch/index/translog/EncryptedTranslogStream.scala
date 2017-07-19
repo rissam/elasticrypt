@@ -30,18 +30,16 @@ class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName
 
   /**
     * Override this method to remove the translog header.
-    * @param channel
+    * @param channel FileChannel used
+    * @return 0
     */
   override def writeHeader(channel: FileChannel): Int = {
     0
   }
 
   /**
-    *
-    * @param encryptedFileInputStream
-    * @throws
-    * @throws
-    * @return
+    * Creates an InputStreamStreamInput.
+    * @param encryptedFileInputStream input stream used
     */
   @throws[EOFException]
   @throws[IOException]
@@ -51,8 +49,8 @@ class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName
 
   /**
     * Copied from ChecksummedTranslogStream but modified to use EncryptedFileChannel (and removed CodecUtil.checkHeader).
-    * @param translogFile
-    * @return
+    * @param translogFile File used to create a ChannelInputStream
+    * @return TODO
     */
   override def openInput(translogFile: File): StreamInput = {
     val encryptedFileInputStream = new ChannelInputStream(new EncryptedFileChannel(translogFile, pageSize, keyProvider, indexName))

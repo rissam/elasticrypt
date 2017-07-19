@@ -28,5 +28,8 @@ class EncryptedIndexStore @Inject() (index: Index,
                                      client: Client)
   extends FsIndexStore(index, indexSettings, indexService, indicesStore, nodeEnv) {
 
+  /**
+    * Returns an EncryptedDirectoryService.
+    */
   override def shardDirectory(): Class[_ <: DirectoryService] = classOf[EncryptedDirectoryService]
 }
