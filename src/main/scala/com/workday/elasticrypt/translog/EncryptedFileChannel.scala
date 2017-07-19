@@ -25,13 +25,6 @@ import org.apache.lucene.util.{AESReader, AESWriter, HmacFileHeader}
   *
   * In any case, to support both, we have to at least lazily open AESReader and AESWriter only as needed....
   * Simply using lazy here seems too easy.
-  *
-  * @constructor Create an EncryptedFileChannel by making a new RandomAccessFileAccess
-  * @param name File name
-  * @param raf RandomAccessFIle used to reading and writing
-  * @param pageSize Number of 16-byte blocks per page
-  * @param keyProvider  Encryption key information getter
-  * @param indexName  Name of the index used to retrieve the key
   */
 class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, indexName: String)
   extends FileChannel {
@@ -40,29 +33,29 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
   private[translog] lazy val reader = new AESReader(name, raf, pageSize, keyProvider, indexName, fileHeader)
   private[translog] lazy val writer = new AESWriter(name, raf, pageSize, keyProvider, indexName, fileHeader)
 
-  /** @constructor Creates an EncryptedFileChannel by creating a new RandomAccessFile.
-    * @param file File instance used
-    * @param pageSize Number of 16-byte blocks per page
-    * @param keyProvider  Encryption key information getter
-    * @param indexName  Name of the index used to retrieve the key
+  /** @constructor creates an EncryptedFileChannel by creating a new RandomAccessFile
+    * @param file File used
+    * @param pageSize number of 16-byte blocks per page
+    * @param keyProvider encryption key information getter
+    * @param indexName name of the index used to retrieve the key
     */
   def this(file: File, pageSize: Int, keyProvider: KeyProvider, indexName: String) =
     this(file.getName(), new RandomAccessFile(file, "rw"), pageSize, keyProvider, indexName)
 
   /**
     * Overrides tryLock to throw an UnsupportedOperationException.
-    * @param position TODO
-    * @param size TODO
-    * @param shared TODO
+    * @param position the position at which the locked region is to start; must be non-negative
+    * @param size the size of the locked region; must be non-negative, and the sum position size must be non-negative
+    * @param shared true to request a shared lock; false to request an exclusive lock
     */
   override def tryLock(position: Long, size: Long, shared: Boolean): FileLock =
     throw new UnsupportedOperationException
 
   /**
     * Overrides transferFrom to throw an UnsupportedOperationException.
-    * @param src  The source channel
-    * @param position The position within the file at which the transfer is to begin; must be non-negative
-    * @param count  The maximum number of bytes to be transferred; must be non-negative
+    * @param src the source channel
+    * @param position the position within the file at which the transfer is to begin; must be non-negative
+    * @param count the maximum number of bytes to be transferred; must be non-negative
     */
   override def transferFrom(src: ReadableByteChannel, position: Long, count: Long): Long =
     throw new UnsupportedOperationException
@@ -75,16 +68,16 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Overrides position to throw an UnsupportedOperationException.
-    * @param newPosition TODO
+    * @param newPosition the new position, a non-negative integer counting the number of bytes from the start of the entity
     */
   override def position(newPosition: Long): FileChannel =
     throw new UnsupportedOperationException
 
   /**
     * Overrides transferTo to throw an UnsupportedOperationException.
-    * @param position The position within the file at which the transfer is to begin; must be non-negative
-    * @param count  The maximum number of bytes to be transferred; must be non-negative
-    * @param target The target channel
+    * @param position the position within the file at which the transfer is to begin; must be non-negative
+    * @param count  the maximum number of bytes to be transferred; must be non-negative
+    * @param target the target channel
     */
   override def transferTo(position: Long, count: Long, target: WritableByteChannel): Long =
     throw new UnsupportedOperationException
@@ -97,25 +90,25 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Overrides truncate to throw an UnsupportedOperationException.
-    * @param size The new size, a non-negative byte count
+    * @param size the new size, a non-negative byte count
     */
   override def truncate(size: Long): FileChannel =
     throw new UnsupportedOperationException
 
   /**
     * Overrides lock to throw an UnsupportedOperationException.
-    * @param position The position at which the locked region is to start; must be non-negative
-    * @param size The size of the locked region; must be non-negative, and the sum position size must be non-negative
-    * @param shared True to request a shared lock, in which case this channel must be open for reading (and possibly writing);
-    *         false to request an exclusive lock, in which case this channel must be open for writing (and possibly reading)
+    * @param position the position at which the locked region is to start; must be non-negative
+    * @param size the size of the locked region; must be non-negative, and the sum position size must be non-negative
+    * @param shared true to request a shared lock (this channel must be open for reading and possibly writing);
+    *               false to request an exclusive lock (this channel must be open for writing and possibly reading)
     */
   override def lock(position: Long, size: Long, shared: Boolean): FileLock =
     throw new UnsupportedOperationException
 
   /**
     * Writes data to disk.
-    * @param src The buffer from which bytes are to be retrieved
-    * @return The number of bytes copied into the buffer cache
+    * @param src the buffer from which bytes are to be retrieved
+    * @return the number of bytes copied into the buffer cache
     */
   override def write(src: ByteBuffer): Int = {
     writer.write(src)
@@ -123,10 +116,10 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Writes a section of data to disk.
-    * @param srcs Data to be written
-    * @param offset Offset in the data
-    * @param length Number of bytes to be written
-    * @return The number of bytes written into disk
+    * @param srcs data to be written
+    * @param offset offset in the data
+    * @param length number of bytes to be written
+    * @return the number of bytes written into disk
     */
   override def write(srcs: Array[ByteBuffer], offset: Int, length: Int): Long = {
     srcs.slice(offset, offset + length).map(write(_)).sum
@@ -134,9 +127,9 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Writes data to disk starting from a given position.
-    * @param src The buffer from which bytes are to be transferred
-    * @param position The file position at which the transfer is to begin; must be non-negative
-    * @return The number of bytes copied into the buffer cache
+    * @param src the buffer from which bytes are to be transferred
+    * @param position the file position at which the transfer is to begin; must be non-negative
+    * @return the number of bytes copied into the buffer cache
     */
   override def write(src: ByteBuffer, position: Long): Int = {
     writer.seek(position)
@@ -145,7 +138,7 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Read bytes from the file into the given byte array.
-    * @param dst Byte array to copy bytes to
+    * @param dst byte array to copy bytes to
     * @return -1 if eof has been reached, the number of bytes copied into b otherwise.
     */
   override def read(dst: ByteBuffer): Int = {
@@ -154,9 +147,9 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Read bytes from the file into the given byte array.
-    * @param dsts Byte array to copy bytes to
-    * @param offset Position in b to start copying data
-    * @param length Number of bytes to be copied
+    * @param dsts byte array to copy bytes to
+    * @param offset position in b to start copying data
+    * @param length number of bytes to be copied
     * @return -1 if eof has been reached, the number of bytes copied into b otherwise.
     */
   override def read(dsts: Array[ByteBuffer], offset: Int, length: Int): Long = {
@@ -165,8 +158,8 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Read bytes from the file into the given byte array.
-    * @param dst Byte array to copy bytes to
-    * @param position The file position at which the transfer is to begin; must be non-negative
+    * @param dst byte array to copy bytes to
+    * @param position the file position at which the transfer is to begin; must be non-negative
     * @return -1 if eof has been reached, the number of bytes copied into b otherwise.
     */
   override def read(dst: ByteBuffer, position: Long): Int = {
@@ -188,16 +181,16 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
 
   /**
     * Flushes out the data from the writer buffer to the disk.
-    * @param metaData
+    * @param metaData true if need to force changes to both the file's content and the metadata written to storage;
+    *                 otherwise, only need to force content changes to be written
     */
   override def force(metaData: Boolean): Unit = writer.flush()
 
   /**
     * Overrides map to throw an UnsupportedOperationException.
-    * @param mode File is to be mapped read-only, read/write, or privately (copy-on-write), respectively
-    * @param position The position within the file at which the mapped region is to start; must be non-negative
-    * @param size The size of the region to be mapped; must be non-negative and no greater than MAX_VALUE
-    * @return TODO
+    * @param mode file is to be mapped read-only, read/write, or privately (copy-on-write), respectively
+    * @param position the position within the file at which the mapped region is to start; must be non-negative
+    * @param size the size of the region to be mapped; must be non-negative and no greater than MAX_VALUE
     */
   override def map(mode: MapMode, position: Long, size: Long): MappedByteBuffer =
     throw new UnsupportedOperationException

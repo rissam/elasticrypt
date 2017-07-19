@@ -24,28 +24,27 @@ class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProv
   extends RafReference(file, logger) {
   private[this] val encryptedFileChannel = new EncryptedFileChannel(file.getName, raf(), pageSize, keyProvider, indexName)
 
-  /**
-    * Shadow the RafReference refCount because we need to override decreaseRefCount()
-    */
+  // Shadow the RafReference refCount because we need to override decreaseRefCount()
   private[translog] val refCount: AtomicInteger = new AtomicInteger
 
   refCount.incrementAndGet()
 
   /**
-    * Override
-    * @return
+    * Return EncryptedFileChannel.
     */
   override def channel(): FileChannel = {
     this.encryptedFileChannel
   }
 
   /**
-    * Overriding this method only necessary because we had to override decreaseRefCount() and refCount
+    * Overriding this method only necessary because we had to override decreaseRefCount() and refCount.
+    * @return true if refCount + 1 is greater than 1, false otherwise
     */
   override def increaseRefCount(): Boolean = refCount.incrementAndGet > 1
 
   /**
-    * We need to override this so that we can intercept raf.close() to first flush the AESWriter
+    * We need to override this so that we can intercept raf.close() to first flush the AESWriter.
+    * @param deleteFile true if want to delete the file
     */
   override def decreaseRefCount(deleteFile: Boolean): Unit = {
     val refsCount = refCount.decrementAndGet()
@@ -66,9 +65,8 @@ class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProv
     }
   }
 
-  /** Override
-    *
-    * @return
+  /**
+    * Creates and returns EncryptedTranslogStream.
     */
   @Override
   def translogStreamFor: TranslogStream = {
