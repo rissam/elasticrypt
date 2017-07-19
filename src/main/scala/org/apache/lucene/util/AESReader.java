@@ -178,7 +178,7 @@ public class AESReader
      */
    private void readFileHeader() throws IOException
    {
-       this.fileHeader.readHeader(); // TODO: make sure corner cases are caught (do we need to use key that is read?)
+       this.fileHeader.readHeader();
        this.header_offset = this.raf.getFilePointer();
    }
 

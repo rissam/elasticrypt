@@ -50,7 +50,7 @@ class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName
   /**
     * Copied from ChecksummedTranslogStream but modified to use EncryptedFileChannel (and removed CodecUtil.checkHeader).
     * @param translogFile File used to create a ChannelInputStream
-    * @return TODO
+    * @return new InputStreamStreamInput
     */
   override def openInput(translogFile: File): StreamInput = {
     val encryptedFileInputStream = new ChannelInputStream(new EncryptedFileChannel(translogFile, pageSize, keyProvider, indexName))

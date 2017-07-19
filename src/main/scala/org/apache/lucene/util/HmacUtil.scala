@@ -22,7 +22,6 @@ class CryptoException(message: String = null, cause: Throwable = null) extends R
 object HmacUtil {
   private[this] val HMAC_ERROR_PREFIX: String = "HMAC Error - "
 
-  // TODO: refactor these constants to somewhere more central/easily configurable?
   val DATA_CIPHER_ALGORITHM = "AES"
   val DATA_KEY_SIZE = 256
   val HMAC_SHA256_ALGORITHM = "HmacSHA256"

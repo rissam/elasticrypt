@@ -34,7 +34,7 @@ final private[store] class AESIndexOutput(directory: File, val name: String,
     AESIndexOutput.WRITE_CHUNK_SIZE) {
 
   /**
-    * TODO
+    * Closes the IndexOutput stream.
     */
   @throws[IOException]
   override def close() {

@@ -43,9 +43,10 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     */
   protected[this] def buildFileHeader(raf: RandomAccessFile): FileHeader = new HmacFileHeader(raf, component.keyProvider, indexName)
 
-  /** Creates and returns an IndexOutput for the file with the given name.
+  /**
+    * Creates and returns an IndexOutput for the file.
     * @param name file name
-    * @param context TODO
+    * @param context object whose information is used to create a new IndexOutput
     */
   @throws[IOException]
   override def createOutput(name: String, context: IOContext): IndexOutput = {
@@ -67,9 +68,9 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     }
   }
 
-  /** Creates and returns an IndexInput for the file with the given name.
+  /** Creates and returns an IndexInput for the file.
     * @param name file name
-    * @param context TODO
+    * @param context object whose information is used to create a new IndexInput
     */
   @throws[IOException]
   override def openInput(name: String, context: IOContext): IndexInput = {
