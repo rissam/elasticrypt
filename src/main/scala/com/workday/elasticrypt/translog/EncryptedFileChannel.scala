@@ -33,7 +33,8 @@ class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, k
   private[translog] lazy val reader = new AESReader(name, raf, pageSize, keyProvider, indexName, fileHeader)
   private[translog] lazy val writer = new AESWriter(name, raf, pageSize, keyProvider, indexName, fileHeader)
 
-  /** @constructor creates an EncryptedFileChannel by creating a new RandomAccessFile
+  /**
+    * @constructor creates an EncryptedFileChannel by creating a new RandomAccessFile
     * @param file File used
     * @param pageSize number of 16-byte blocks per page
     * @param keyProvider encryption key information getter
