@@ -34,7 +34,7 @@ Extends `org.elasticsearch.index.translog.fs.RafReference` and overrides the `ch
 
 ## Key Management
 
-**KeyFactoryProvider.scala**
+**KeyProviderFactory.scala**
 A singleton object that acts as a factory for key providers. Includes the KeyProvider trait, an outline for a basic key provider.
 
 **HardcodedKeyProvider.scala**
