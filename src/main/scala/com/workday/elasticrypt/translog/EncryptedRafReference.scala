@@ -19,6 +19,12 @@ import org.elasticsearch.index.translog.{EncryptedTranslogStream, TranslogStream
 /**
   * We extend ES's RafReference (org.elasticsearch.index.translog.fs.RafReference) so that we do not need to copy
   * even more of ES's code into our own codebase. Overrides the channel() method to return an EncryptedFileChannel.
+  *
+  * @param file File instance to be used
+  * @param logger ESLogger
+  * @param pageSize number of 16-byte blocks per page
+  * @param keyProvider encryption key information getter
+  * @param indexName name of index used to retrieve key
   */
 class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProvider: KeyProvider, indexName: String)
   extends RafReference(file, logger) {

@@ -55,15 +55,12 @@ public class AESReader
     private long header_offset = 0;
     private FileHeader fileHeader;
 
-    /* Encryption/Decryption buffer cache.*/
+    /* Encryption/Decryption buffer cache. */
     private final byte[] buffer;
-    /* Internal filePos. We cannot use raf's because that one
-    * will always be aligned a 16 byte boundary
-    */
+    /* Internal filePos. We cannot use raf's because that one will always be aligned a 16 byte boundary */
     private long filePos;
     /* Start position of buffer in reference to byte in the Virtual File without encryption meta-data(IV).
-    * buffer_start is usually at the start of a page.
-    */
+     * buffer_start is usually at the start of a page. */
     private long bufferStart;
     /* Number of valid bytes in the buffer */
     private int bufferLength;
@@ -86,11 +83,11 @@ public class AESReader
      * @constructor
      * Creates an encrypted random access file reader that uses the AES encryption algorithm in CBC mode.
      * @param name File name.
-     * @param raf File to read.
-     * @param page_size Number of 16-byte blocks per page. Must be the same number used when writing the file.
-     * @param keyProvider Getter for key used to initialize the ciphers.
-     * @param indexName Used to retrieve the key using keyProvider.
-     * @param fileHeader Creates the file header.
+     * @param raf file to read.
+     * @param page_size number of 16-byte blocks per page. Must be the same number used when writing the file.
+     * @param keyProvider getter for key used to initialize the ciphers.
+     * @param indexName used to retrieve the key using keyProvider.
+     * @param fileHeader creates the file header.
      */
    public AESReader(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String indexName, FileHeader fileHeader) throws IOException,
           NoSuchAlgorithmException,
@@ -112,10 +109,10 @@ public class AESReader
            this.raf = raf;
            this.indexName = indexName;
            this.fileHeader = fileHeader;
-           /* Read the file header.*/
+           /* Read the file header. */
            this.readFileHeader();
 
-           /* Retrieve the key based on the index obtained via the shard.*/
+           /* Retrieve the key based on the index obtained via the shard. */
            this.key = keyProvider.getKey(indexName);
 
            page_size_in_bytes = page_size * BLOCKSIZE;
@@ -124,8 +121,7 @@ public class AESReader
            this.cur_iv = new byte[BLOCKSIZE];
            this.page_size = page_size;
 
-           /* Check padding and determine end (file length) */
-           /* Read the last page. */
+           /* Check padding and determine end (file length). Read the last page. */
            this.raf.seek(Math.max(this.raf.length() - page_size_in_bytes, this.header_offset));
 
            /* Initialize the Initialization Vector for the last page by reading it from the file. */
@@ -152,7 +148,6 @@ public class AESReader
                            "Bad padding @ byte " + (buf_size - i) + ". Expected: "
                                    + no_padding + ". Value: " + buffer[i]
                    );
-
            }
 
            /* Determine the end of the file after removing padding bytes. */
@@ -162,8 +157,7 @@ public class AESReader
 
            /* Refill the buffer cache (by seeking to the beginning of the file after the header)
             * Seek already accounts for header offset, so seeking to pos 0 will point us at the
-            * beginning of the payload after the header.
-            */
+            * beginning of the payload after the header. */
            seek(0);
        } catch(Exception ex) {
            // On error, make sure we close the file
@@ -300,7 +294,7 @@ public class AESReader
              /* Will need to start loading next pages to read len bytes. */
             while(remaining > 0 && filePos < end){
                int available = bufferLength - bufferPosition;
-               /* If bytes are available in the buffer cache then, copy them to the request buffer.*/
+               /* If bytes are available in the buffer cache then, copy them to the request buffer. */
                if(available > 0){
                   int to_read = Math.min(available,remaining);
                    dst.put(buffer, bufferPosition, to_read);
@@ -309,8 +303,7 @@ public class AESReader
                   filePos += to_read;
                }else{
                   /* If all the bytes in the buffer cache have been read then, read and decrypt
-                   * next page from disk into the buffer cache.
-                   */
+                   * next page from disk into the buffer cache. */
                   refill();
                }
             }

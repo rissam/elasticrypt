@@ -20,7 +20,7 @@ object AESChunkedOutputStreamBuilder {
     * Creates an AESWriter and a ChunkedOutputStream.
     * @param directory File to use
     * @param name file name
-    * @param pageSize number of 16-byte blocks per age
+    * @param pageSize number of 16-byte blocks per page
     * @param createAESWriter function that creates an AESWriter
     * @return ChunkedOutputStream
     */

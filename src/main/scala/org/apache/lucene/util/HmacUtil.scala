@@ -13,6 +13,8 @@ import javax.crypto.{Mac, SecretKey}
 
 /**
   * Exception thrown by HMAC Util functions.
+  * @param message the message attached to the exception, defaults to null
+  * @param cause the reason for the thrown exception, defaults to null
   */
 class CryptoException(message: String = null, cause: Throwable = null) extends RuntimeException(message, cause)
 
@@ -21,7 +23,6 @@ class CryptoException(message: String = null, cause: Throwable = null) extends R
   */
 object HmacUtil {
   private[this] val HMAC_ERROR_PREFIX: String = "HMAC Error - "
-
   val DATA_CIPHER_ALGORITHM = "AES"
   val DATA_KEY_SIZE = 256
   val HMAC_SHA256_ALGORITHM = "HmacSHA256"

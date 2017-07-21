@@ -23,6 +23,10 @@ import sun.nio.ch.ChannelInputStream
   * Extension of org.elasticsearch.index.translog.ChecksummedTranslogStream that overrides openInput()
   * to use a ChannelInputStream that wraps an EncryptedFileChannel. This class must be located in
   * org.elasticsearch.index.translog in order to access the no-arg constructor of ChecksummedTranslogStream.
+  *
+  * @param pageSize number of 16-byte blocks per page
+  * @param keyProvider encryption key information getter
+  * @param indexName name of index used to retrieve the key
   */
 class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName: String) extends ChecksummedTranslogStream {
 

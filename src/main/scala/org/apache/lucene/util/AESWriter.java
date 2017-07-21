@@ -49,7 +49,7 @@ public class AESWriter
     private static final int BLOCKSIZE = 16;
     /* An object to sync on */
     private final Object lock = new Object();
-    /* Random Access file object used to read the physical encrypted file on disk.*/
+    /* Random Access file object used to read the physical encrypted file on disk. */
     private RandomAccessFile raf;
     /* Encryption Cipher */
     private final Cipher ecipher;
@@ -59,18 +59,15 @@ public class AESWriter
     private final byte[] buffer;
     private byte[] ciphertext;
     /* Initialization vector(16 bytes) to be used to encrypt the buffer.
-     * IV vectors are unique per page buffer in a file. So,
-     * A 4 page(1024 bytes/page) file will have a encrypted page of size (1024(DATA) + 16(IV)) and
-     * total file size of (1024 + 16) * 4 bytes.
-     */
+     * IV vectors are unique per page buffer in a file. So, a 4 page(1024 bytes/page) file will have an
+     * encrypted page of size (1024(DATA) + 16(IV)) and total file size of (1024 + 16) * 4 bytes. */
     private byte[] cur_iv;
     /* header_offset for the file header. */
     private long header_offset = 0;
     /* Current byte in the buffer which is caching the data for write. */
     private int buffer_pos;
     /* Start position of buffer in reference to byte in the Virtual File without encryption meta-data(IV).
-     * buffer_start is usually at the start of a page.
-     */
+     * buffer_start is usually at the start of a page. */
     private long buffer_start;
     /* Number of bytes in the buffer which is caching the data for write. */
     private int buffer_size;
@@ -88,14 +85,13 @@ public class AESWriter
     private final int page_size;
     /* Total number of bytes per page(page_size * BLOCKSIZE). */
     private final long page_size_in_bytes;
-    /* File pointer in the encrypted file without accounting of file header and
-    * Initialization Vector/Page. Assume,
-    * header_offset      = 20 bytes
-    * page_size_in_bytes = 1024 bytes
-    * IV size            = 16 bytes
-    * Unencrypted Byte to be accessed = 1030
-    * Physical byte in the encrypted file = 20 + (16 + 1024) + (16 + 6) = 1082
-    * cur_fp = Unencrypted byte to be accessed = 1030 */
+    /* File pointer in the encrypted file without accounting of file header and Initialization Vector/Page. Assume,
+     * header_offset      = 20 bytes
+     * page_size_in_bytes = 1024 bytes
+     * IV size            = 16 bytes
+     * Unencrypted Byte to be accessed = 1030
+     * Physical byte in the encrypted file = 20 + (16 + 1024) + (16 + 6) = 1082
+     * cur_fp = Unencrypted byte to be accessed = 1030 */
     private long cur_fp;
     /* Indicates if the cache buffer has been modified. */
     private boolean modified;
@@ -107,8 +103,7 @@ public class AESWriter
 
     private FileHeader fileHeader;
 
-    /* force gets set if setLength is called.
-     * It means that the file cannot grow after setLength as been called */
+    /* Force gets set if setLength is called. It means that the file cannot grow after setLength as been called */
     private boolean force;
     private final ESLogger logger = ESLoggerFactory.getRootLogger();
 
@@ -116,11 +111,11 @@ public class AESWriter
       * @constructor
       * Creates an encrypted random access file that uses the AES encryption algorithm in CBC mode.
       * @param name File name
-      * @param raf File to create
-      * @param page_size Number of 16-byte blocks per page
-      * @param keyProvider Encryption key information getter
-      * @param indexName Name of index used to get key
-      * @param fileHeader Creates the file header
+      * @param raf file to create
+      * @param page_size number of 16-byte blocks per page
+      * @param keyProvider encryption key information getter
+      * @param indexName name of index used to get key
+      * @param fileHeader creates the file header
       */
     public AESWriter(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String indexName, FileHeader fileHeader) throws Exception
     {
@@ -131,16 +126,13 @@ public class AESWriter
             this.indexName = indexName;
             this.fileHeader = fileHeader;
 
-
             // Only allow writing on new files. Lucene specifies that a new writer will be created only for new files.
             if(raf.length() != 0)
                 throw new RuntimeException("File already Exists");
 
-           /*
-            * Unpadding with decipher does not work for some reason.
-            * It seems that it wants the last 2 blocks of memory before it
-            * decrypts. That is why unpadding is done manually.
-            */
+           /* Unpadding with decipher does not work for some reason.
+            * It seems that it wants the last 2 blocks of memory before it decrypts.
+            * That is why unpadding is done manually. */
             this.ecipher = Cipher.getInstance("AES/CBC/NoPadding");
             this.dcipher = Cipher.getInstance("AES/CBC/NoPadding");
 
@@ -355,16 +347,9 @@ public class AESWriter
     }
 
     /**
-      * TODO
-      * @param b
-      * @return
-      * @throws IOException
-      * @throws javax.crypto.ShortBufferException
-      * @throws javax.crypto.IllegalBlockSizeException
-      * @throws InvalidKeyException
-      * @throws InvalidAlgorithmParameterException
-      * @throws javax.crypto.BadPaddingException
-      * @throws NoSuchAlgorithmException
+      * Write data to disk.
+      * @param b array of bytes to write
+      * @return number of bytes copied to disk
       */
     public int write(ByteBuffer b) throws IOException,
             javax.crypto.ShortBufferException,
@@ -402,21 +387,13 @@ public class AESWriter
                  /* Load next page from disk: initialize the IV vector and load and decrypt the data from disk into buffer cache. */
                     this.fillBuffer();
                 }
-
             }
         }
         return bytesCopied;
     }
 
     /**
-      * TODO
-      * @throws IOException
-      * @throws javax.crypto.ShortBufferException
-      * @throws javax.crypto.IllegalBlockSizeException
-      * @throws javax.crypto.BadPaddingException
-      * @throws InvalidKeyException
-      * @throws InvalidAlgorithmParameterException
-      * @throws NoSuchAlgorithmException
+      * Writes the internal buffer cache to disk.
       */
     private void writePage() throws IOException,
             javax.crypto.ShortBufferException,
@@ -441,11 +418,9 @@ public class AESWriter
             javax.crypto.BadPaddingException,
             InvalidKeyException,
             InvalidAlgorithmParameterException, NoSuchAlgorithmException {
-        /*
-           In the case of a translog flush before any data is written to the file, we need to bypass the rest of writePage,
-           since it tries to encrypt the buffer and accesses the ciphers. The ciphers are impossible to initialize
-           without access to tenant keys.
-         */
+        /* In the case of a translog flush before any data is written to the file, we need to bypass the rest of writePage,
+         * since it tries to encrypt the buffer and accesses the ciphers. The ciphers are impossible to initialize
+         * without access to tenant keys. */
         if (isFileClose && !this.headerWritten) {
             if (this.buffer_size == 0) {
                 this.isPadded = true;
@@ -460,7 +435,7 @@ public class AESWriter
         this.writeFileHeaderLazy();
         this.modified = false;
 
-       /* Set underlying file position to the start of the file page without initialization vector.*/
+       /* Set underlying file position to the start of the file page without initialization vector. */
         offset_seek(encryptedAddrToPhysicalAddr(this.buffer_start) - BLOCKSIZE);
         this.raf.write(this.cur_iv);
 
@@ -529,7 +504,7 @@ public class AESWriter
        /* If there is no IV in the page then generate one and write it to disk. Else, read Initialization Vector(IV). */
         this.raf.seek(_cur_fp);
         if(_cur_fp  >= this.raf.length()){
-           /* generate a random IV and write it to disk */
+           /* Generate a random IV and write it to disk */
             _iv = generateIV().getIV();
             this.raf.write(_iv);
         }else{
@@ -567,7 +542,7 @@ public class AESWriter
       * 1. Sets the IV vector for each page and inserts padding.
       * 2. Seeks to the beginning of file and sets the end of the file to newLen and cur_fp to 0.
       * 3. Buffer Cache: Sets the buf pos and start to 0.
-      * @param newLen The new size of the file.
+      * @param newLen the new size of the file
       */
     public void setLength(long newLen) throws IOException,
             javax.crypto.ShortBufferException,

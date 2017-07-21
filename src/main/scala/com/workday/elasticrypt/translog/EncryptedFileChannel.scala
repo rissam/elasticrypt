@@ -16,15 +16,22 @@ import com.workday.elasticrypt.KeyProvider
 import org.apache.lucene.util.{AESReader, AESWriter, HmacFileHeader}
 
 /**
-  * Extension of java.nio.channels.FileChannel that instantiates an AESReader and AESWriter to encrypt all reads and writes.
-  * Utilized in EncryptedRafReference and EncryptedTranslogStream.
-  *
   * Two issues here:
   * (1) AESReader should only be instantiated for existent files - maybe there should be an open method?
   * (2) AESWriter should only be instantiated on non-existent files - does ES guarantee that for translog?
   *
   * In any case, to support both, we have to at least lazily open AESReader and AESWriter only as needed....
   * Simply using lazy here seems too easy.
+  *
+  * Class representing an EncryptedFileChannel that creates an AESReader and an AESWriter and reads files and writes to disk.
+  * Extension of java.nio.channels.FileChannel that instantiates an AESReader and AESWriter to encrypt all reads and writes.
+  * Utilized in EncryptedRafReference and EncryptedTranslogStream.
+  *
+  * @param name file name
+  * @param raf file pointer
+  * @param pageSize number of 16-byte blocks per page
+  * @param keyProvider encryption key information getter
+  * @param indexName name of index used to retrieve key
   */
 class EncryptedFileChannel(name: String, raf: RandomAccessFile, pageSize: Int, keyProvider: KeyProvider, indexName: String)
   extends FileChannel {

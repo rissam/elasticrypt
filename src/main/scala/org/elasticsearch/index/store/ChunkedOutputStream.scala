@@ -15,8 +15,10 @@ import java.io.{FilterOutputStream, OutputStream}
   *
   * https://www.elastic.co/guide/en/elasticsearch/reference/1.7/index-modules.html
   * https://github.com/apache/lucene-solr/blob/master/lucene/core/src/java/org/apache/lucene/store/FSDirectory.java#L412
+  *
+  * @param os output stream of bytes
+  * @param chunkSize maximum number of bytes we want to write each chunk
   */
-
 private[store] class ChunkedOutputStream(os: OutputStream, chunkSize: Int) extends FilterOutputStream(os) {
 
   /**

@@ -20,6 +20,12 @@ import org.elasticsearch.index.store.fs.FsDirectoryService
 /**
   * Extends org.elasticsearch.index.store.fs.FsDirectoryService and overrides newFSDirectory().
   * Returns an EncryptedDirectory.
+  *
+  * @param shardId the ID of the shard
+  * @param indexSettings Settings
+  * @param indexStore EncryptedIndexStore
+  * @param client Elasticsearch client
+  * @param component NodeKeyProviderComponent used
   */
 class EncryptedDirectoryService @Inject() (shardId: ShardId,
                                            @IndexSettings indexSettings: Settings,

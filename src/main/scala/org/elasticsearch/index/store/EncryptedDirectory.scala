@@ -27,6 +27,12 @@ import org.elasticsearch.index.shard.ShardId
   *
   * https://www.elastic.co/guide/en/elasticsearch/reference/1.7/index-modules-store.html#default_fs
   * https://github.com/apache/lucene-solr/blob/master/lucene/core/src/java/org/apache/lucene/store/NIOFSDirectory.java
+  *
+  * @param path File to use
+  * @param lockFactory the lock factory to use
+  * @param shardId the ID of the shard used to get the index name
+  * @param esClient Elasticsearch client
+  * @param component NodeKeyProviderComponent to provide the key provider
   */
 class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId, esClient: Client, component: NodeKeyProviderComponent)
   extends NIOFSDirectory(path, lockFactory) {
@@ -68,7 +74,8 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     }
   }
 
-  /** Creates and returns an IndexInput for the file.
+  /**
+    * Creates and returns an IndexInput for the file.
     * @param name file name
     * @param context object whose information is used to create a new IndexInput
     */
@@ -87,7 +94,8 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     }
   }
 
-  /** Checks for the metadata file.
+  /**
+    * Checks for the metadata file.
     * @param fileName name of the file
     * @return true if the file exists; false otherwise
     */
@@ -98,7 +106,8 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
       fileName.endsWith("." + Lucene46SegmentInfoFormat.SI_EXTENSION)
   }
 
-  /** Creates and returns an AESWriter.
+  /**
+    * Creates and returns an AESWriter.
     * @param path File to use
     * @param raf file to create
     * @param pageSize number of 16-byte blocks per page
@@ -109,7 +118,8 @@ class EncryptedDirectory(path: File, lockFactory: LockFactory, shardId: ShardId,
     new AESWriter(path.getName, raf, pageSize, keyProvider, indexName, fileHeader)
   }
 
-  /** Creates and returns an AESReader.
+  /**
+    * Creates and returns an AESReader.
     * @param path File to use
     * @param raf file to create
     * @param pageSize number of 16-byte blocks per page

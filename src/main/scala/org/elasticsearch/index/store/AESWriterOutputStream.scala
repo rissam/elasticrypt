@@ -11,7 +11,11 @@ import java.io.OutputStream
 
 import org.apache.lucene.util.AESWriter
 
-/** Extension of java.io.OutputStream that wraps an AESWriter and routes all writes through it. */
+/**
+  * Extension of java.io.OutputStream that wraps an AESWriter and routes all writes through it.
+  *
+  * @param writer AESWriter used to write to disk
+  */
 class AESWriterOutputStream(writer: AESWriter) extends OutputStream {
 
   /**
