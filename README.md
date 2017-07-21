@@ -34,14 +34,11 @@ Extends `org.elasticsearch.index.translog.fs.RafReference` and overrides the `ch
 
 ## Key Management
 
-**KeyProvider.java**
-An interface for fetching encryption keys.
+**KeyFactoryProvider.scala**
+A singleton object that acts as a factory for key providers. Includes the KeyProvider trait, an outline for a basic key provider.
 
 **HardcodedKeyProvider.scala**
-Dummy implementation of the `KeyProvider` interface as a proof of concept. We plan to introduce more complex KeyProviders such as `HttpKeyProvider` in a followup PR.
-
-**KeyIdParser.scala**
-Utilities for parsing a key ID from Elasticsearch metadata such as an index name or alias name.
+Dummy implementation of the `KeyProvider` trait as a proof of concept. We plan to introduce more complex KeyProviders such as `HttpKeyProvider` in a followup PR.
 
 **EncryptedNodeModule.scala**
 An `org.elasticsearch.common.inject.AbstractModule` that enables injection of `NodeKeyProviderComponent`.
