@@ -1,6 +1,7 @@
 # elasticrypt
 
-This plugin attempts to provide tenanted encryption at rest in Elasticsearch. Below is a brief overview of the files in the plugin and how they are used.
+This plugin attempts to provide tenanted encryption at rest in Elasticsearch 1.7. Below is a brief overview of the files in the plugin and how they are used.
+
 
 ## Plugin
 
@@ -26,7 +27,7 @@ Implementation of the `FileHeader` interface that adds a MAC hash that is used t
 Utility functions used in the `HmacFileHeader` class.
 
 **EncryptedFileChannel.scala**
-Extension of `java.nio.channels.FileChannel` that instantiates an AESReader and AESWriter to encrypt all reads and writes. Utilized in `EncryptedRafReference` and `EncryptedTranslogStream`.
+Extension of `java.nio.channels.FileChannel` that instantiates an `AESReader` and `AESWriter` to encrypt all reads and writes. Utilized in `EncryptedRafReference` and `EncryptedTranslogStream`.
 
 **EncryptedRafReference.scala**
 Extends `org.elasticsearch.index.translog.fs.RafReference` and overrides the `channel()` method to return an `EncryptedFileChannel`.
@@ -38,7 +39,7 @@ Extends `org.elasticsearch.index.translog.fs.RafReference` and overrides the `ch
 A singleton object that acts as a factory for key providers. Includes the KeyProvider trait, an outline for a basic key provider.
 
 **HardcodedKeyProvider.scala**
-Dummy implementation of the `KeyProvider` trait as a proof of concept. We plan to introduce more complex KeyProviders such as `HttpKeyProvider` in a followup PR.
+Dummy implementation of the `KeyProvider` trait as a proof of concept.
 
 **EncryptedNodeModule.scala**
 An `org.elasticsearch.common.inject.AbstractModule` that enables injection of `NodeKeyProviderComponent`.
@@ -59,7 +60,7 @@ Extension of `org.elasticsearch.index.translog.ChecksummedTranslogStream` that o
 ## Lucene Directory-Level Encryption
 
 **EncryptedDirectory.scala**
-This class extends `org.apache.lucene.store.NIOFSDirectory` and overrides `createOutput()` and `openInput()` to include encryption and decryption via `AESIndexOutput` and `AESIndexInput` respectively. Code is based on the existing implementation in NIOFSDirectory:
+This class extends `org.apache.lucene.store.NIOFSDirectory` and overrides `createOutput()` and `openInput()` to include encryption and decryption via `AESIndexOutput` and `AESIndexInput` respectively. Code is based on the existing implementation in `NIOFSDirectory`:
  - https://github.com/apache/lucene-solr/blob/master/lucene/core/src/java/org/apache/lucene/store/NIOFSDirectory.java
  - https://www.elastic.co/guide/en/elasticsearch/reference/1.7/index-modules-store.html#default_fs
 
@@ -73,7 +74,7 @@ Extension of `org.apache.lucene.store.BufferedIndexInput` that uses an instance 
 Builder that creates a `ChunkedOutputStream` that wraps an `AESWriterOutputStream`.
 
 **ChunkedOutputStream.scala**
-This code is based on the existing implementation in FSDirectory:
+This code is based on the existing implementation in `FSDirectory`:
  - https://github.com/apache/lucene-solr/blob/master/lucene/core/src/java/org/apache/lucene/store/FSDirectory.java#L412
 
 **AESWriterOutputStream.scala**
@@ -88,3 +89,53 @@ Extension of `org.elasticsearch.index.store.fs.FsIndexStore` that overrides `sha
 **EncryptedIndexStoreModule.scala**
 An `org.elasticsearch.common.inject.AbstractModule` that enables injection of `EncryptedIndexStore`.
 
+
+## How To
+Install Elasticsearch 1.7.6 from https://www.elastic.co/guide/en/elasticsearch/reference/1.7/_installation.html.
+
+Clone this repository and add elasticrypt as a dependency in the `build.sbt` file. Elasticrypt is currently running with Scala 2.12.2 and Java 1.8.0_45.
+
+Generate a zip folder by running this command in the elasticrypt directory.
+```
+sbt assembleZip
+```
+
+Install the elasticrypt plugin into Elasticsearch by typing the following command
+```
+./bin/plugin --url file:///path/to/plugin --install plugin-name
+```
+
+Start up Elasticsearch.
+```
+./bin/elasticsearch
+```
+
+
+## Building, Testing & Contributing
+
+This is an SBT-based project, so building and testing locally is done simply by using:
+```
+sbt clean coverage test
+```
+Generate the code coverage report with:
+```
+sbt coverageReport
+```
+This project aims for 100% test coverage, so any new code should be covered by test code.
+Before contributing, please read the [contributing documentation]. Create a separate branch for your patch and obtain a passing CI build before submitting a pull request.
+
+## Documentation
+
+## Authors
+
+Please note that the commit history does not accurately reflect authorship, because much of the code was ported from an internal repository. Please view the [Contributors List](https://github.com/Workday/elasticrypt/blob/feature/scala-docs/CONTRIBUTORS) for a full list of people who have contributed to the project.
+
+## License
+
+Copyright 2017 Workday, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
