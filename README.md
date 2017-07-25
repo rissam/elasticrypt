@@ -1,6 +1,6 @@
 # elasticrypt
 
-This plugin attempts to provide tenanted encryption at rest in Elasticsearch. Below is a brief overview of the files in the plugin and how they are used.
+This plugin attempts to provide tenanted encryption at rest in Elasticsearch 1.7. Below is a brief overview of the files in the plugin and how they are used.
 
 ## Plugin
 
@@ -38,7 +38,7 @@ Extends `org.elasticsearch.index.translog.fs.RafReference` and overrides the `ch
 An interface for fetching encryption keys.
 
 **HardcodedKeyProvider.scala**
-Dummy implementation of the `KeyProvider` interface as a proof of concept. We plan to introduce more complex KeyProviders such as `HttpKeyProvider` in a followup PR.
+Dummy implementation of the `KeyProvider` interface as a proof of concept.
 
 **KeyIdParser.scala**
 Utilities for parsing a key ID from Elasticsearch metadata such as an index name or alias name.
@@ -91,3 +91,29 @@ Extension of `org.elasticsearch.index.store.fs.FsIndexStore` that overrides `sha
 **EncryptedIndexStoreModule.scala**
 An `org.elasticsearch.common.inject.AbstractModule` that enables injection of `EncryptedIndexStore`.
 
+## How To
+
+## Building, Testing & Contributing
+
+This is an SBT-based project, so building and testing locally is done simply by using:
+sbt clean coverage test
+Generate the code coverage report with:
+sbt coverageReport
+This project aims for 100% test coverage, so any new code should be covered by test code.
+Before contributing, please read our contributing documentation. Create a separate branch for your patch and obtain a passing CI build before submitting a pull request.
+
+## Documentation
+
+## Authors
+
+Please note that the commit history does not accurately reflect authorship, because much of the code was ported from an internal repository. Please view the Contributors List for a full list of people who have contributed to the project.
+
+## License
+
+Copyright 2017 Workday, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
