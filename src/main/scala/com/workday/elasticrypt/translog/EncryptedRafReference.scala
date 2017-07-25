@@ -19,29 +19,38 @@ import org.elasticsearch.index.translog.{EncryptedTranslogStream, TranslogStream
 /**
   * We extend ES's RafReference (org.elasticsearch.index.translog.fs.RafReference) so that we do not need to copy
   * even more of ES's code into our own codebase. Overrides the channel() method to return an EncryptedFileChannel.
+  *
+  * @param file File instance to be used
+  * @param logger ESLogger
+  * @param pageSize number of 16-byte blocks per page
+  * @param keyProvider encryption key information getter
+  * @param indexName name of index used to retrieve key
   */
 class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProvider: KeyProvider, indexName: String)
   extends RafReference(file, logger) {
   private[this] val encryptedFileChannel = new EncryptedFileChannel(file.getName, raf(), pageSize, keyProvider, indexName)
 
-  /**
-    * Shadow the RafReference refCount because we need to override decreaseRefCount()
-    */
+  // Shadow the RafReference refCount because we need to override decreaseRefCount()
   private[translog] val refCount: AtomicInteger = new AtomicInteger
 
   refCount.incrementAndGet()
 
+  /**
+    * Return EncryptedFileChannel.
+    */
   override def channel(): FileChannel = {
     this.encryptedFileChannel
   }
 
   /**
-    * Overriding this method only necessary because we had to override decreaseRefCount() and refCount
+    * Overriding this method only necessary because we had to override decreaseRefCount() and refCount.
+    * @return true if refCount + 1 is greater than 1, false otherwise
     */
   override def increaseRefCount(): Boolean = refCount.incrementAndGet > 1
 
   /**
-    * We need to override this so that we can intercept raf.close() to first flush the AESWriter
+    * We need to override this so that we can intercept raf.close() to first flush the AESWriter.
+    * @param deleteFile true if want to delete the file
     */
   override def decreaseRefCount(deleteFile: Boolean): Unit = {
     val refsCount = refCount.decrementAndGet()
@@ -62,6 +71,9 @@ class EncryptedRafReference(file: File, logger: ESLogger, pageSize: Int, keyProv
     }
   }
 
+  /**
+    * Creates and returns EncryptedTranslogStream.
+    */
   @Override
   def translogStreamFor: TranslogStream = {
     new EncryptedTranslogStream(pageSize, keyProvider, indexName)

@@ -19,6 +19,13 @@ import org.elasticsearch.indices.store.IndicesStore
 /**
   * Extends org.elasticsearch.index.store.fs.FsIndexStore and overrides shardDirectory()
   * to return the class of EncryptedDirectoryService.
+  *
+  * @param index Index
+  * @param indexSettings Settings
+  * @param indexService IndexService
+  * @param indicesStore IndicesStore
+  * @param nodeEnv NodeEnvironment
+  * @param client Elasticsearch client
   */
 class EncryptedIndexStore @Inject() (index: Index,
                                      @IndexSettings indexSettings: Settings,
@@ -28,5 +35,8 @@ class EncryptedIndexStore @Inject() (index: Index,
                                      client: Client)
   extends FsIndexStore(index, indexSettings, indexService, indicesStore, nodeEnv) {
 
+  /**
+    * Returns an EncryptedDirectoryService.
+    */
   override def shardDirectory(): Class[_ <: DirectoryService] = classOf[EncryptedDirectoryService]
 }

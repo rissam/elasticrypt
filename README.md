@@ -35,14 +35,11 @@ Extends `org.elasticsearch.index.translog.fs.RafReference` and overrides the `ch
 
 ## Key Management
 
-**KeyProvider.java**
-An interface for fetching encryption keys.
+**KeyProviderFactory.scala**
+A singleton object that acts as a factory for key providers. Includes the KeyProvider trait, an outline for a basic key provider.
 
 **HardcodedKeyProvider.scala**
 Dummy implementation of the `KeyProvider` trait as a proof of concept.
-
-**KeyIdParser.scala**
-Utilities for parsing a key ID from Elasticsearch metadata such as an index name or alias name.
 
 **EncryptedNodeModule.scala**
 An `org.elasticsearch.common.inject.AbstractModule` that enables injection of `NodeKeyProviderComponent`.
@@ -113,13 +110,6 @@ Start up Elasticsearch.
 ./bin/elasticsearch
 ```
 
-Install Kibana 4.2 and Sense -- https://www.elastic.co/guide/en/sense/current/installing.html#disable_discover.
-
-```
-libraryDependencies += "com.workday" %% "elasticrypt" % "1.7.0"
-```
-
-As soon as Elasticsearch and Kibana are up, navigate to http://localhost:5601/app/sense to interface with Elasticsearch.
 
 ## Building, Testing & Contributing
 

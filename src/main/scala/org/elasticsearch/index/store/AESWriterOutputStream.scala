@@ -11,11 +11,26 @@ import java.io.OutputStream
 
 import org.apache.lucene.util.AESWriter
 
-/** Extension of java.io.OutputStream that wraps an AESWriter and routes all writes through it. */
+/**
+  * Extension of java.io.OutputStream that wraps an AESWriter and routes all writes through it.
+  *
+  * @param writer AESWriter used to write to disk
+  */
 class AESWriterOutputStream(writer: AESWriter) extends OutputStream {
-  // The Javadoc explains that a byte is always passed here and the Int is just some kind of convenience
+
+  /**
+    * Writes data to file beginning from the start.
+    * Javadoc explains that a byte is always passed here and the Int is just some kind of convenience.
+    * @param b array of bytes to write
+    */
   override def write(b: Int): Unit = write(Array[Byte](b.toByte), 0, 1)
 
+  /**
+    * Writes the given data to file.
+    * @param b   array of bytes to write
+    * @param off offset in b to start
+    * @param len number of bytes to write
+    */
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
     writer.write(b, off, len)
   }

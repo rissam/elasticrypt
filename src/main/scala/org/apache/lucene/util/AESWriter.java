@@ -49,35 +49,31 @@ public class AESWriter
     private static final int BLOCKSIZE = 16;
     /* An object to sync on */
     private final Object lock = new Object();
-    /* Random Access file object used to read the physical encrypted file on disk.*/
+    /* Random Access file object used to read the physical encrypted file on disk. */
     private RandomAccessFile raf;
     /* Encryption Cipher */
     private final Cipher ecipher;
     /* Decryption Cipher. This is needed if a seek occurs and entire blocks are not overwritten. */
     private final Cipher dcipher;
-    /* Encryption pending buffer cache. If there is a block that is not entirely filled, this buffer
-    * will be used. */
+    /* Encryption pending buffer cache. If there is a block that is not entirely filled, this buffer will be used. */
     private final byte[] buffer;
     private byte[] ciphertext;
     /* Initialization vector(16 bytes) to be used to encrypt the buffer.
-    * IV vectors are unique per page buffer in a file. So,
-    * A 4 page(1024 bytes/page) file will have a encrypted page of size (1024(DATA) + 16(IV)) and
-    * total file size of (1024 + 16) * 4 bytes.
-    */
+     * IV vectors are unique per page buffer in a file. So, a 4 page(1024 bytes/page) file will have an
+     * encrypted page of size (1024(DATA) + 16(IV)) and total file size of (1024 + 16) * 4 bytes. */
     private byte[] cur_iv;
-    /* header_offset for the file header */
+    /* header_offset for the file header. */
     private long header_offset = 0;
-    /* Current byte in the buffer which is caching the data for write.*/
+    /* Current byte in the buffer which is caching the data for write. */
     private int buffer_pos;
     /* Start position of buffer in reference to byte in the Virtual File without encryption meta-data(IV).
-    * buffer_start is usually at the start of a page.
-    */
+     * buffer_start is usually at the start of a page. */
     private long buffer_start;
-    /* Number of bytes in the buffer which is caching the data for write.*/
+    /* Number of bytes in the buffer which is caching the data for write. */
     private int buffer_size;
-    /* Length of the encrypted file without header and IV/page bytes.*/
+    /* Length of the encrypted file without header and IV/page bytes. */
     private long end;
-    /* Contains the state of the padding */
+    /* Contains the state of the padding. */
     private boolean isPadded;
     /* Encryption Key */
     private SecretKeySpec key;
@@ -87,18 +83,17 @@ public class AESWriter
     private KeyGenerator ivgen;
     /* Number of blocks(based on BLOCKSIZE = 16 bytes) per page */
     private final int page_size;
-    /* Total number of bytes per page(page_size * BLOCKSIZE).*/
+    /* Total number of bytes per page(page_size * BLOCKSIZE). */
     private final long page_size_in_bytes;
-    /* File pointer in the encrypted file without accounting of file header and
-    * Initialization Vector/Page. Assume,
-    * header_offset      = 20 bytes
-    * page_size_in_bytes = 1024 bytes
-    * IV size            = 16 bytes
-    * Unencrypted Byte to be accessed = 1030
-    * Physical byte in the encrypted file = 20 + (16 + 1024) + (16 + 6) = 1082
-    * cur_fp = Unencrypted byte to be accessed = 1030*/
+    /* File pointer in the encrypted file without accounting of file header and Initialization Vector/Page. Assume,
+     * header_offset      = 20 bytes
+     * page_size_in_bytes = 1024 bytes
+     * IV size            = 16 bytes
+     * Unencrypted Byte to be accessed = 1030
+     * Physical byte in the encrypted file = 20 + (16 + 1024) + (16 + 6) = 1082
+     * cur_fp = Unencrypted byte to be accessed = 1030 */
     private long cur_fp;
-    /* Indicates if the cache buffer has been modified.*/
+    /* Indicates if the cache buffer has been modified. */
     private boolean modified;
     /* File name */
     private final String name;
@@ -108,20 +103,19 @@ public class AESWriter
 
     private FileHeader fileHeader;
 
-    /* force gets set if setLength is called.
-    * It means that the file cannot grow after setLength as been called */
+    /* Force gets set if setLength is called. It means that the file cannot grow after setLength as been called */
     private boolean force;
     private final ESLogger logger = ESLoggerFactory.getRootLogger();
 
     /**
       * @constructor
       * Creates an encrypted random access file that uses the AES encryption algorithm in CBC mode.
-      * @param name File name.
-      * @param raf File to create.
-      * @param page_size Number of 16-byte blocks per page.
-      * @param keyProvider Encryption Key information getter.
-      * @param indexName
-      * @param fileHeader
+      * @param name File name
+      * @param raf file to create
+      * @param page_size number of 16-byte blocks per page
+      * @param keyProvider encryption key information getter
+      * @param indexName name of index used to get key
+      * @param fileHeader creates the file header
       */
     public AESWriter(String name, RandomAccessFile raf, int page_size, KeyProvider keyProvider, String indexName, FileHeader fileHeader) throws Exception
     {
@@ -132,30 +126,28 @@ public class AESWriter
             this.indexName = indexName;
             this.fileHeader = fileHeader;
 
-           /* Only allow writing on new files. Lucene specifies that a new writer
-            * will be created only for new files.
-            */
+            // Only allow writing on new files. Lucene specifies that a new writer will be created only for new files.
             if(raf.length() != 0)
                 throw new RuntimeException("File already Exists");
 
-           /* unpadding with decipher does not work for some reason.
-            * It seems that it wants the last 2 blocks of memory before it
-            * decrypts. That is why unpadding is done manually */
+           /* Unpadding with decipher does not work for some reason.
+            * It seems that it wants the last 2 blocks of memory before it decrypts.
+            * That is why unpadding is done manually. */
             this.ecipher = Cipher.getInstance("AES/CBC/NoPadding");
             this.dcipher = Cipher.getInstance("AES/CBC/NoPadding");
 
             this.page_size = page_size;
             this.page_size_in_bytes = BLOCKSIZE*this.page_size;
 
-           /* Initialize the internal buffer cache. Decrypted blocks are stored here.*/
+           /* Initialize the internal buffer cache. Decrypted blocks are stored here. */
             this.buffer = new byte[BLOCKSIZE*page_size];
 
-           /* Buffer containing the encrypted data.*/
+           /* Buffer containing the encrypted data. */
             this.ciphertext = new byte[buffer.length];
 
             this.isPadded = false;
         } catch(Exception ex) {
-            // On error, make sure we close the file
+            // On error, make sure we close the file.
             this.raf.close();
             throw ex;
         }
@@ -172,19 +164,19 @@ public class AESWriter
             InvalidKeyException {
         try {
             if (!headerWritten) {
-                /* Set the header offset to be the size of bytes written for the header.*/
+                /* Set the header offset to be the size of bytes written for the header. */
                 this.header_offset = this.fileHeader.writeHeader();
 
                 this.key = keyProvider.getKey(this.indexName);
 
-                /* Initialize the ciphers. We should clean this up depending on the mode.*/
+                /* Initialize the ciphers. We should clean this up depending on the mode. */
                 this.ivgen = KeyGenerator.getInstance("AES");
                 this.initCiphers(generateIV());
 
                 headerWritten = true;
             }
         } catch(Exception ex) {
-            // On error, make sure we close the file
+            // On error, make sure we close the file.
             this.raf.close();
             throw ex;
         }
@@ -208,10 +200,10 @@ public class AESWriter
         if(ivps == null)
             ivps = generateIV();
 
-       /* Store the IV bytes */
+       /* Store the IV bytes. */
         this.cur_iv = ivps.getIV();
 
-       /* Init the ciphers with ivps */
+       /* Init the ciphers with ivps. */
         this.ecipher.init(Cipher.ENCRYPT_MODE, this.key, ivps);
         this.dcipher.init(Cipher.DECRYPT_MODE, this.key, ivps);
     }
@@ -304,24 +296,24 @@ public class AESWriter
       /* Convert virtual position in file to actual position in the physical encrypted file. */
         long _phys_pos = this.encryptedAddrToPhysicalAddr(pos);
 
-      /* Convert physical encrypted block to physical starting address of the page.*/
+      /* Convert physical encrypted block to physical starting address of the page. */
         _page = _phys_pos/(this.page_size_in_bytes + BLOCKSIZE);
         _page *= (this.page_size_in_bytes + BLOCKSIZE);
 
-      /* Move the physical file pointer to (_page + header_offset) address.*/
+      /* Move the physical file pointer to (_page + header_offset) address. */
         offset_seek(_page);
 
       /* Set cur_fp to virtual file address */
         this.cur_fp = pos;
 
       /* Load the buffer cache with data from the physical file, decrypt it, and
-      * Set the Initialization Vector(IV) for encryption.*/
+       * Set the Initialization Vector(IV) for encryption. */
         this.fillBuffer();
 
-      /* Set buffer start to the start address of the page in the virtual file.*/
+      /* Set buffer start to the start address of the page in the virtual file. */
         this.buffer_start = (pos / page_size_in_bytes) * page_size_in_bytes;
 
-      /* Set buffer_pos to point to pos in the buffer */
+      /* Set buffer_pos to point to pos in the buffer. */
         this.buffer_pos = (int)(this.cur_fp % this.page_size_in_bytes);
     }
 
@@ -355,16 +347,9 @@ public class AESWriter
     }
 
     /**
-      * TODO
-      * @param b
-      * @return
-      * @throws IOException
-      * @throws javax.crypto.ShortBufferException
-      * @throws javax.crypto.IllegalBlockSizeException
-      * @throws InvalidKeyException
-      * @throws InvalidAlgorithmParameterException
-      * @throws javax.crypto.BadPaddingException
-      * @throws NoSuchAlgorithmException
+      * Write data to disk.
+      * @param b array of bytes to write
+      * @return number of bytes copied to disk
       */
     public int write(ByteBuffer b) throws IOException,
             javax.crypto.ShortBufferException,
@@ -379,9 +364,9 @@ public class AESWriter
                 this.modified = true;
 
                 int bufferLength = b.limit() - b.position();
-                //Minimum of len and available is the number of bytes to write
+                // Minimum of len and available is the number of bytes to write
                 _len = (int)Math.min(bufferLength, this.page_size_in_bytes - this.buffer_pos);
-                //System.arraycopy(b, off, this.buffer, this.buffer_pos, _len);
+                // System.arraycopy(b, off, this.buffer, this.buffer_pos, _len);
                 b.get(this.buffer, this.buffer_pos, _len);
 
                 if(this.cur_fp + _len > this.end){
@@ -389,7 +374,7 @@ public class AESWriter
                 }
 
              /* Update the length of bytes left to be written and current offset by using number of bytes already
-             * copied into the buffer cache.*/
+              * copied into the buffer cache. */
                 bytesCopied += _len;
                 this.buffer_pos += _len;
                 this.cur_fp += _len;
@@ -397,26 +382,18 @@ public class AESWriter
                 this.end = Math.max(this.cur_fp, this.end);
 
                 if(this.buffer_pos == this.page_size_in_bytes){
-                 /* Encrypt and write current page from the buffer cache to disk along with IV.*/
+                 /* Encrypt and write current page from the buffer cache to disk along with IV. */
                     this.writePage();
-                 /* Load next page from disk: initialize the IV vector and load and decrypt the data from disk into buffer cache.*/
+                 /* Load next page from disk: initialize the IV vector and load and decrypt the data from disk into buffer cache. */
                     this.fillBuffer();
                 }
-
             }
         }
         return bytesCopied;
     }
 
     /**
-      * TODO
-      * @throws IOException
-      * @throws javax.crypto.ShortBufferException
-      * @throws javax.crypto.IllegalBlockSizeException
-      * @throws javax.crypto.BadPaddingException
-      * @throws InvalidKeyException
-      * @throws InvalidAlgorithmParameterException
-      * @throws NoSuchAlgorithmException
+      * Writes the internal buffer cache to disk.
       */
     private void writePage() throws IOException,
             javax.crypto.ShortBufferException,
@@ -441,11 +418,9 @@ public class AESWriter
             javax.crypto.BadPaddingException,
             InvalidKeyException,
             InvalidAlgorithmParameterException, NoSuchAlgorithmException {
-        /*
-           In the case of a translog flush before any data is written to the file, we need to bypass the rest of writePage,
-           since it tries to encrypt the buffer and accesses the ciphers. The ciphers are impossible to initialize
-           without access to tenant keys.
-         */
+        /* In the case of a translog flush before any data is written to the file, we need to bypass the rest of writePage,
+         * since it tries to encrypt the buffer and accesses the ciphers. The ciphers are impossible to initialize
+         * without access to tenant keys. */
         if (isFileClose && !this.headerWritten) {
             if (this.buffer_size == 0) {
                 this.isPadded = true;
@@ -460,7 +435,7 @@ public class AESWriter
         this.writeFileHeaderLazy();
         this.modified = false;
 
-       /* Set underlying file position to the start of the file page without initialization vector.*/
+       /* Set underlying file position to the start of the file page without initialization vector. */
         offset_seek(encryptedAddrToPhysicalAddr(this.buffer_start) - BLOCKSIZE);
         this.raf.write(this.cur_iv);
 
@@ -502,8 +477,7 @@ public class AESWriter
 
     /**
       * Reads a page from the underlying file and initialize the ciphers.
-      * If there is no page to read, the ciphers get initialized
-      * with a random IV.
+      * If there is no page to read, the ciphers get initialized with a random IV.
       */
     private void fillBuffer() throws IOException,
             javax.crypto.ShortBufferException,
@@ -519,37 +493,34 @@ public class AESWriter
         _iv       = new byte[BLOCKSIZE];
 
        /* Buffer start byte position at beginning of the page in the file where cur_fp is located.
-        * The buffer_start does not contain metadata offset(IVs + file header).*/
+        * The buffer_start does not contain metadata offset(IVs + file header). */
         this.buffer_start = this.cur_fp/page_size_in_bytes*page_size_in_bytes;
 
        /* Current file pointer in the physical encrypted file at the start of the page.
-        * It includes all the IVs for the pages before the current page and the file header.*/
+        * It includes all the IVs for the pages before the current page and the file header. */
         _cur_fp   = encryptedAddrToPhysicalAddr(this.buffer_start) - BLOCKSIZE;
         _cur_fp += this.header_offset;
 
-       /* If there is no IV in the page then,
-        *    generate one and write it to disk. Else,
-        *    read Initialization Vector(IV).
-        */
+       /* If there is no IV in the page then generate one and write it to disk. Else, read Initialization Vector(IV). */
         this.raf.seek(_cur_fp);
         if(_cur_fp  >= this.raf.length()){
-           /* generate a random IV and write it to disk */
+           /* Generate a random IV and write it to disk */
             _iv = generateIV().getIV();
             this.raf.write(_iv);
         }else{
             this.raf.readFully(_iv);
         }
 
-       /* Move physical file fp to account for the iv.*/
+       /* Move physical file fp to account for the iv */
         _cur_fp += BLOCKSIZE;
 
        /* Read page */
        /* Read encrypted data into buffer cache.
-        * Update buffer size to number of data bytes read.*/
+        * Update buffer size to number of data bytes read. */
         this.buffer_size = _end = this.raf.read(this.buffer,0, (int)this.page_size_in_bytes);
 
        /* If not bytes are read then,
-        * Initialize the cyphers and set buffer_size = buffer_pos = 0.*/
+        * Initialize the cyphers and set buffer_size = buffer_pos = 0 */
         if(_end == -1){
             this.buffer_size = 0;
             this.initCiphers(new IvParameterSpec(_iv));
@@ -561,7 +532,7 @@ public class AESWriter
         this.initCiphers(new IvParameterSpec(_iv));
         this.buffer_pos = 0;
 
-       /* Decrypt the encrypted data and write it back to the buffer cache.*/
+       /* Decrypt the encrypted data and write it back to the buffer cache. */
         this.dcipher.doFinal(this.buffer,0,_end,this.buffer,0);
     }
 
@@ -571,7 +542,7 @@ public class AESWriter
       * 1. Sets the IV vector for each page and inserts padding.
       * 2. Seeks to the beginning of file and sets the end of the file to newLen and cur_fp to 0.
       * 3. Buffer Cache: Sets the buf pos and start to 0.
-      * @param newLen The new size of the file.
+      * @param newLen the new size of the file
       */
     public void setLength(long newLen) throws IOException,
             javax.crypto.ShortBufferException,
@@ -582,11 +553,11 @@ public class AESWriter
     {
         synchronized(lock){
             force = true;
-            /* Total number of bytes in terms of full block bytes.*/
+            /* Total number of bytes in terms of full block bytes. */
             long _len = newLen + BLOCKSIZE - (newLen % BLOCKSIZE);
-            /* Number of bytes needed in padding for a block.*/
+            /* Number of bytes needed in padding for a block. */
             int no_padding = (int)(BLOCKSIZE - (newLen % BLOCKSIZE));
-            /* Total blocks calculation is done this way for newlen being multiple of 16.*/
+            /* Total blocks calculation is done this way for newlen being multiple of 16. */
             long num_blocks = (_len + BLOCKSIZE - 1)/BLOCKSIZE;
             long num_pages = (num_blocks + this.page_size-1)/this.page_size;
 
@@ -607,7 +578,7 @@ public class AESWriter
                   /* Last page needs padding */
                     _iv = generateIV().getIV();
                     this.raf.write(_iv);
-                  /* Number of bytes in the last page.*/
+                  /* Number of bytes in the last page. */
                     int _num = (int)(_len - _cur);
                     byte[] data = new byte[_num];
                     for(int j = _num -1; j >= _num - no_padding; j--)
@@ -621,7 +592,7 @@ public class AESWriter
                     this.isPadded = true;
                     _cur += _num;
                 }else{
-                  /* generate and write random IV to file */
+                  /* Generate and write random IV to file */
                     _iv = generateIV().getIV();
                     this.raf.write(_iv);
                     this.raf.seek(this.raf.getFilePointer() + page_size_in_bytes);
@@ -636,7 +607,7 @@ public class AESWriter
             this.buffer_start = 0;
             this.buffer_pos = 0;
 
-          /* load first page */
+          /* Load first page */
             this.fillBuffer();
         }
     }

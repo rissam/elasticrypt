@@ -24,6 +24,7 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName:
 
   /**
     * Writes the file header.
+    * @return the resulting file pointer
     */
   def writeHeader(): Long = {
     // Write index name
@@ -39,12 +40,13 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName:
     hmacBytes = HmacUtil.hmacValue(plainTextBytes, keyProvider.getKey(indexName))
     writeByteArray(hmacBytes)
 
-    // return the current file pointer (i.e. header offset)
+    // Return the current file pointer (i.e. header offset)
     raf.getFilePointer
   }
 
   /**
     * Writes the byte array.
+    * @param byteArray data to be written
     */
   private def writeByteArray(byteArray: Array[Byte]) {
     raf.writeInt(byteArray.length)
@@ -63,11 +65,12 @@ class HmacFileHeader(raf: RandomAccessFile, keyProvider: KeyProvider, indexName:
   }
 
   /**
-    * Read current bytes.
+    * Reads the current bytes.
+    * @return the data read
     */
   @throws[java.io.IOException]
   private def readBytesFromCurrentFilePointer: Array[Byte] = {
-    /* Read the length of the following byte array in the file.*/
+    /* Read the length of the following byte array in the file. */
     val num_bytes: Int = raf.readInt
     val byteArray: Array[Byte] = new Array[Byte](num_bytes)
     raf.readFully(byteArray)

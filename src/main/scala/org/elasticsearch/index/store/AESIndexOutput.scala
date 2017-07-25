@@ -33,6 +33,9 @@ final private[store] class AESIndexOutput(directory: File, val name: String,
     AESChunkedOutputStreamBuilder.build(directory, name, pageSize, createAESWriter),
     AESIndexOutput.WRITE_CHUNK_SIZE) {
 
+  /**
+    * Closes the IndexOutput stream.
+    */
   @throws[IOException]
   override def close() {
     try

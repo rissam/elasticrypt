@@ -36,17 +36,35 @@ class EncryptedTranslog @Inject()(shardId: ShardId,
   private[this] val pageSize = 64
   private[translog] val indexName = shardId.getIndex
 
+  /**
+    * Getter for the key provider, as provided by the NodeKeyProviderComponent parameter.
+    * @return KeyProvider
+    */
   def getKeyProvider = component.keyProvider
 
+  /**
+    * Adds an operation to the transaction log.
+    * @param operation type of operation
+    * @return location of transaction log
+    */
   override def add(operation: Translog.Operation): Translog.Location = {
-    getKeyProvider.getKey(indexName) // make sure that we can get the key for this tenant, don't retry so we can fail fast
+    getKeyProvider.getKey(indexName) // Make sure that we can get the key for this tenant, don't retry so we can fail fast
     super.add(operation)
   }
 
+  /**
+    * Creates and returns an EncryptedRafReference.
+    * @param file File instance to be used
+    * @param logger ESLogger
+    */
   override protected[translog] def createRafReference(file: File, logger: ESLogger) = {
     new EncryptedRafReference(file, logger, pageSize, getKeyProvider, indexName)
   }
 
+  /**
+    * Creates and returns an EncryptedTranslogStream.
+    * @param translogFile File used to create TranslogStream
+    */
   override def translogStreamFor(translogFile: File): TranslogStream = {
     new EncryptedTranslogStream(pageSize, getKeyProvider, indexName)
   }

@@ -22,5 +22,13 @@ object HardcodedKeyProvider {
   * We plan to introduce more complex KeyProviders such as HttpKeyProvider in a followup PR.
   */
 class HardcodedKeyProvider(keyValue: Array[Byte] = HardcodedKeyProvider.DEFAULT_KEY) extends KeyProvider {
+
+  /**
+    * Retrieves the key that corresponds to the given index name.
+    * This is currently programmed to return a HardcodedKeyProvider that returns a constant key.
+    * The user must rewrite this method according to the needs of his/her project.
+    * @param indexName the name of index used to get a specific key
+    * @return the key requested
+    */
   def getKey(indexName: String): SecretKeySpec = new SecretKeySpec(keyValue, HardcodedKeyProvider.ALGORITHM_AES)
 }

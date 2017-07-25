@@ -17,9 +17,19 @@ import org.elasticsearch.common.inject.Module
   * Entry point for the plugin. Defines plugin name (Elasticrypt) and description.
   */
 class ElasticryptPlugins extends AbstractPlugin {
+
+  /**
+    * Name of the project.
+    */
   override def name(): String = "elasticrypt"
 
+  /**
+    * Description of project.
+    */
   override def description(): String = "An Elasticsearch plug-in that provides tenanted encryption at rest."
 
+  /**
+    * Returns EncryptedNodeModule.
+    */
   override def modules(): util.Collection[Class[_ <: Module]] = Collections.singletonList(classOf[EncryptedNodeModule])
 }

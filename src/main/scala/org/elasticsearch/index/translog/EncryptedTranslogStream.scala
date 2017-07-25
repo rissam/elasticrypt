@@ -23,6 +23,10 @@ import sun.nio.ch.ChannelInputStream
   * Extension of org.elasticsearch.index.translog.ChecksummedTranslogStream that overrides openInput()
   * to use a ChannelInputStream that wraps an EncryptedFileChannel. This class must be located in
   * org.elasticsearch.index.translog in order to access the no-arg constructor of ChecksummedTranslogStream.
+  *
+  * @param pageSize number of 16-byte blocks per page
+  * @param keyProvider encryption key information getter
+  * @param indexName name of index used to retrieve the key
   */
 class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName: String) extends ChecksummedTranslogStream {
 
@@ -30,11 +34,17 @@ class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName
 
   /**
     * Override this method to remove the translog header.
+    * @param channel FileChannel used
+    * @return 0
     */
   override def writeHeader(channel: FileChannel): Int = {
     0
   }
 
+  /**
+    * Creates an InputStreamStreamInput.
+    * @param encryptedFileInputStream input stream used
+    */
   @throws[EOFException]
   @throws[IOException]
   private[translog] def createInputStreamStreamInput(encryptedFileInputStream: ChannelInputStream) = {
@@ -43,6 +53,8 @@ class EncryptedTranslogStream(pageSize: Int, keyProvider: KeyProvider, indexName
 
   /**
     * Copied from ChecksummedTranslogStream but modified to use EncryptedFileChannel (and removed CodecUtil.checkHeader).
+    * @param translogFile File used to create a ChannelInputStream
+    * @return new InputStreamStreamInput
     */
   override def openInput(translogFile: File): StreamInput = {
     val encryptedFileInputStream = new ChannelInputStream(new EncryptedFileChannel(translogFile, pageSize, keyProvider, indexName))

@@ -10,22 +10,24 @@ package org.elasticsearch.index.store
 import java.io.{FilterOutputStream, OutputStream}
 
 /**
-  * Much of this code is based on the existing implementation in FSDirectory
+  * Much of this code is based on the existing implementation in FSDirectory.
+  * This logic is factored out from the AESDirectory patch.
   *
   * https://www.elastic.co/guide/en/elasticsearch/reference/1.7/index-modules.html
   * https://github.com/apache/lucene-solr/blob/master/lucene/core/src/java/org/apache/lucene/store/FSDirectory.java#L412
+  *
+  * @param os output stream of bytes
+  * @param chunkSize maximum number of bytes we want to write each chunk
   */
-
-// This logic is factored out from the AESDirectory patch
 private[store] class ChunkedOutputStream(os: OutputStream, chunkSize: Int) extends FilterOutputStream(os) {
 
   /**
     * Writes chunk by chunk. Ensures that we never write more than CHUNK_SIZE bytes.
-    * @throws IndexOutOfBoundsException
-    * @throws NullPointerException
-    * @param b Array of bytes to write.
-    * @param offset Offset in the data.
-    * @param length Number of bytes to write.
+    * @throws IndexOutOfBoundsException if offset and length are not reasonable
+    * @throws NullPointerException if b is null
+    * @param b array of bytes to write
+    * @param offset offset in the data
+    * @param length number of bytes to write
     */
   override def write(b: Array[Byte], offset: Int, length: Int) {
     var l = length

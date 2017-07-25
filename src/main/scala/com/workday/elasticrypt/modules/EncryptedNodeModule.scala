@@ -14,6 +14,10 @@ import org.elasticsearch.index.store.NodeKeyProviderComponent
   * An org.elasticsearch.common.inject.AbstractModule that enables injection of NodeKeyProviderComponent.
   */
 class EncryptedNodeModule extends AbstractModule {
+
+  /**
+    * Sets the NodeKeyProviderComponent, which allows us to fetch keys.
+    */
   //$COVERAGE-OFF$
   override protected def configure(): Unit = {
     bind(classOf[NodeKeyProviderComponent]).in(classOf[Singleton])
