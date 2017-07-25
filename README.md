@@ -122,13 +122,13 @@ Generate the code coverage report with:
 sbt coverageReport
 ```
 This project aims for 100% test coverage, so any new code should be covered by test code.
-Before contributing, please read the [contributing documentation]. Create a separate branch for your patch and obtain a passing CI build before submitting a pull request.
+Before contributing, please read the [Contributing Document](https://github.com/Workday/elasticrypt/blob/feature/readme/CONTRIBUTING). Create a separate branch for your patch and obtain a passing CI build before submitting a pull request.
 
 ## Documentation
 
 ## Authors
 
-Please note that the commit history does not accurately reflect authorship, because much of the code was ported from an internal repository. Please view the [Contributors List](https://github.com/Workday/elasticrypt/blob/feature/scala-docs/CONTRIBUTORS) for a full list of people who have contributed to the project.
+Please note that the commit history does not accurately reflect authorship, because much of the code was ported from an internal repository. Please view the [Contributors List](https://github.com/Workday/elasticrypt/blob/master/CONTRIBUTORS) for a full list of people who have contributed to the project.
 
 ## License
 
