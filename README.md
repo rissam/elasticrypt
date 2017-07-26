@@ -1,9 +1,9 @@
 # elasticrypt
 
-This plugin attempts to provide tenanted encryption at rest in Elasticsearch 1.7. Elasticrypt is currently running with Scala 2.12.2 and Java 1.8.0_45.
+This plugin attempts to provide tenanted encryption at rest in Elasticsearch 1.7. Elasticrypt currently runs with Scala 2.12.2 and Java 1.8.0_45 and is dependent on the version of Elasticsearch released on Sonatype.
 
 
-## How To
+## How To Install
 
 Download the Elasticsearch 1.7.6 tar (Windows users should download the zip):
 ```
@@ -20,22 +20,17 @@ Download the jar file and copy it into the `lib` folder:
 cp <path to jar> lib/
 ```
 
-Clone this repository and add elasticrypt as a dependency in `build.sbt`:
-```
-libraryDependencies += "com.workday" %% "elasticrypt" % "1.7.0"
-```
-
-Generate a zip folder by running this command in the elasticrypt directory:
+Clone this repository and generate a zip package by running this command in the elasticrypt directory:
 ```
 sbt assembleZip
 ```
 
-Install the elasticrypt plugin into Elasticsearch by executing the following command:
+Install the elasticrypt plugin into Elasticsearch:
 ```
 ./bin/plugin --url file:///path/to/plugin --install plugin-name
 ```
 
-Start up Elasticsearch.
+Start up Elasticsearch:
 ```
 ./bin/elasticsearch
 ```
