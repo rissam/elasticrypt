@@ -17,7 +17,7 @@ See https://www.elastic.co/guide/en/elasticsearch/reference/1.7/_installation.ht
 
 Download the jar file and copy it into the `lib` folder:
 ```
-cp <path to jar> lib/
+cp <path-to-jar> lib/
 ```
 
 Clone this repository and generate a zip package by running this command in the elasticrypt directory:
@@ -27,12 +27,23 @@ sbt assembleZip
 
 Install the elasticrypt plugin into Elasticsearch by executing the following command inside the Elasticsearch directory:
 ```
-./bin/plugin --url file:///path/to/plugin --install plugin-name
+./bin/plugin --url file:///path/to/plugin --install <plugin-name>
 ```
 
 Start up Elasticsearch:
 ```
 ./bin/elasticsearch
+```
+
+The following settings must be set during the creation of every index to be encrypted:
+```
+PUT <index-name>
+{
+  "settings": {
+    "index.translog.type": "com.workday.elasticrypt.translog.EncryptedTranslog",
+    "index.store.type": "encrypted"
+  }
+}
 ```
 
 
