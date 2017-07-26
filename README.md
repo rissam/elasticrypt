@@ -25,7 +25,7 @@ Clone this repository and generate a zip package by running this command in the 
 sbt assembleZip
 ```
 
-Install the elasticrypt plugin into Elasticsearch:
+Install the elasticrypt plugin into Elasticsearch by executing the following command inside the Elasticsearch directory:
 ```
 ./bin/plugin --url file:///path/to/plugin --install plugin-name
 ```
