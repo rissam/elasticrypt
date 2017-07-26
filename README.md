@@ -1,15 +1,55 @@
 # elasticrypt
 
-This plugin attempts to provide tenanted encryption at rest in Elasticsearch 1.7. Below is a brief overview of the files in the plugin and how they are used.
+This plugin attempts to provide tenanted encryption at rest in Elasticsearch 1.7. Elasticrypt is currently running with Scala 2.12.2 and Java 1.8.0_45.
 
 
-## Plugin
+## How To
+
+Download the Elasticsearch 1.7.6 tar (Windows users should download the zip):
+```
+curl -L -O https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.7.6.tar.gz
+```
+Extract the tar file (Windows users should unzip the zip package):
+```
+tar -xvf elasticsearch-1.7.6.tar.gz
+```
+See https://www.elastic.co/guide/en/elasticsearch/reference/1.7/_installation.html for more information.
+
+Download the jar file and copy it into the `lib` folder:
+```
+cp <path to jar> lib/
+```
+
+Clone this repository and add elasticrypt as a dependency in `build.sbt`:
+```
+libraryDependencies += "com.workday" %% "elasticrypt" % "1.7.0"
+```
+
+Generate a zip folder by running this command in the elasticrypt directory:
+```
+sbt assembleZip
+```
+
+Install the elasticrypt plugin into Elasticsearch by executing the following command:
+```
+./bin/plugin --url file:///path/to/plugin --install plugin-name
+```
+
+Start up Elasticsearch.
+```
+./bin/elasticsearch
+```
+
+
+## Documentation
+
+### Plugin
 
 **ElasticryptPlugin.scala**
 Entry point for the plugin. Defines plugin name and description.
 
 
-## Low-Level Encrypted I/O
+### Low-Level Encrypted I/O
 
 **AESReader.java**
 Core decryption class that uses AES 256-bit ciphers to decrypt a given file. Adapted from https://issues.apache.org/jira/browse/LUCENE-2228
@@ -33,7 +73,7 @@ Extension of `java.nio.channels.FileChannel` that instantiates an `AESReader` an
 Extends `org.elasticsearch.index.translog.fs.RafReference` and overrides the `channel()` method to return an `EncryptedFileChannel`.
 
 
-## Key Management
+### Key Management
 
 **KeyProviderFactory.scala**
 A singleton object that acts as a factory for key providers. Includes the KeyProvider trait, an outline for a basic key provider.
@@ -48,7 +88,7 @@ An `org.elasticsearch.common.inject.AbstractModule` that enables injection of `N
 Defines the `KeyProvider` to be used by this node.
 
 
-## Translog Encryption
+### Translog Encryption
 
 **EncryptedTranslog.scala**
 Extends `org.elasticsearch.index.translog.fs.FsTranslog` and overrides `createRafReference()` and `translogStreamFor()` to return an `EncryptedRafReference` and `EncryptedTranslogStream` respectively. Both `createRafReference()` and `translogStreamFor()` are small methods that we added to `FsTranslog` so that they could be overriden here.
@@ -57,7 +97,7 @@ Extends `org.elasticsearch.index.translog.fs.FsTranslog` and overrides `createRa
 Extension of `org.elasticsearch.index.translog.ChecksummedTranslogStream` that overrides `openInput()` to use a `ChannelInputStream` that wraps an  `EncryptedFileChannel`.
 
 
-## Lucene Directory-Level Encryption
+### Lucene Directory-Level Encryption
 
 **EncryptedDirectory.scala**
 This class extends `org.apache.lucene.store.NIOFSDirectory` and overrides `createOutput()` and `openInput()` to include encryption and decryption via `AESIndexOutput` and `AESIndexInput` respectively. Code is based on the existing implementation in `NIOFSDirectory`:
@@ -90,27 +130,6 @@ Extension of `org.elasticsearch.index.store.fs.FsIndexStore` that overrides `sha
 An `org.elasticsearch.common.inject.AbstractModule` that enables injection of `EncryptedIndexStore`.
 
 
-## How To
-Install Elasticsearch 1.7.6 from https://www.elastic.co/guide/en/elasticsearch/reference/1.7/_installation.html.
-
-Clone this repository and add elasticrypt as a dependency in the `build.sbt` file. Elasticrypt is currently running with Scala 2.12.2 and Java 1.8.0_45.
-
-Generate a zip folder by running this command in the elasticrypt directory.
-```
-sbt assembleZip
-```
-
-Install the elasticrypt plugin into Elasticsearch by typing the following command
-```
-./bin/plugin --url file:///path/to/plugin --install plugin-name
-```
-
-Start up Elasticsearch.
-```
-./bin/elasticsearch
-```
-
-
 ## Building, Testing & Contributing
 
 This is an SBT-based project, so building and testing locally is done simply by using:
@@ -124,7 +143,6 @@ sbt coverageReport
 This project aims for 100% test coverage, so any new code should be covered by test code.
 Before contributing, please read the [Contributing Document](https://github.com/Workday/elasticrypt/blob/feature/readme/CONTRIBUTING). Create a separate branch for your patch and obtain a passing CI build before submitting a pull request.
 
-## Documentation
 
 ## Authors
 
