@@ -147,7 +147,7 @@ Generate the code coverage report with:
 sbt coverageReport
 ```
 This project aims for 100% test coverage, so any new code should be covered by test code.
-Before contributing, please read the [Contributing Document](https://github.com/Workday/elasticrypt/blob/feature/readme/CONTRIBUTING). Create a separate branch for your patch and obtain a passing CI build before submitting a pull request.
+Before contributing, please read the [Contributing Document](https://github.com/Workday/elasticrypt/blob/master/CONTRIBUTING). Create a separate branch for your patch and obtain a passing CI build before submitting a pull request.
 
 
 ## Authors
