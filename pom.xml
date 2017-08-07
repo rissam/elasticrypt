@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.workday</groupId>
+    <artifactId>elasticrypt</artifactId>
+    <version>1.7</version>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>An Elasticsearch plugin that operates at the Lucene level to support per-tenant encryption.</description>
+    <url>https://github.com/Workday/elasticrypt</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Michelle Zhou</name>
+            <email>myz6@cornell.edu</email>
+            <organization>Workday</organization>
+            <organizationUrl>https://www.workday.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/Workday/elasticrypt.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Workday/elasticrypt.git</developerConnection>
+        <url>https://github.com/Workday/elasticrypt</url>
+    </scm>
+</project>

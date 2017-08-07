@@ -1,11 +1,26 @@
 import java.io.File
-
 import sbt.Keys.{name, resourceGenerators, version, _}
 import sbt._
 import sbtassembly.Plugin.AssemblyKeys._
 
 val assembleZip = TaskKey[File]("assembleZip")
 val zipArtifact = SettingKey[Artifact]("zipArtifact")
+
+pomIncludeRepository := { _ => false }
+
+publishArtifact in Test := false
+
+publishMavenStyle := true
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
+useGpg := true
 
 lazy val commonSettings = Seq(
   name := "elasticsearch-encryption-plug-in",
@@ -18,12 +33,14 @@ lazy val root = Project(id = "elasticsearch-encryption-plug-in", base = file("."
   .settings(assemblySettings: _*)
   .settings(
     commonSettings,
+
     libraryDependencies ++= Seq(
       "org.elasticsearch" % "elasticsearch" % "1.7.5-77" % "provided",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
       "org.scoverage" %% "scalac-scoverage-runtime" % "1.0.4", // Need this for integration test
       "org.mockito" % "mockito-all" % "1.9.5"
     ),
+
     assembleZip <<= (assembly, target, name, version) map {
       (assembledJar: File, target: File, name: String, version: String) =>
         val artifact = target / s"$name.zip"
@@ -37,6 +54,7 @@ lazy val root = Project(id = "elasticsearch-encryption-plug-in", base = file("."
         IO.zip(entries, artifact)
         artifact
     },
+
     zipArtifact := Artifact(s"${name.value}", "zip", "zip"),
 
     // Use ScalaTest's built-in event buffering algorithm (shows events of 1 suite as they occur until suite completes/timeouts)
