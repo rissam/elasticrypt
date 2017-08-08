@@ -22,14 +22,18 @@ publishTo := {
 
 useGpg := true
 
+pgpPublicRing := file("~/.gnupg/pubring.kbx")
+
+pgpSecretRing := file("~/.gnupg/pubring.kbx")
+
 lazy val commonSettings = Seq(
-  name := "elasticsearch-encryption-plug-in",
+  name := "elasticrypt",
   organization := "com.workday",
   version := "1.7.0",
   crossScalaVersions := Seq("2.10.4", "2.11.8")
 )
 
-lazy val root = Project(id = "elasticsearch-encryption-plug-in", base = file("."))
+lazy val root = Project(id = "elasticrypt", base = file("."))
   .settings(assemblySettings: _*)
   .settings(
     commonSettings,
