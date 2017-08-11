@@ -1,8 +1,6 @@
 language: scala
-scala: 2.12.2
+scala: 2.10.4, 2.11.8
 before_install:
-  - sudo apt-get update
-  - sudo apt-get java
   - openssl aes-256-cbc -K $encrypted_ca9aa7e0f6e0_key -iv $encrypted_ca9aa7e0f6e0_iv -in pubring.kbx.enc -out pubring.kbx -d
 script:
   - sbt +clean +coverage +test +coverageReport
