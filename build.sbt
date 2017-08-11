@@ -26,6 +26,8 @@ pgpPublicRing := file("~/.gnupg/pubring.kbx")
 
 pgpSecretRing := file("~/.gnupg/pubring.kbx")
 
+credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+
 lazy val commonSettings = Seq(
   name := "elasticrypt",
   organization := "com.workday",
