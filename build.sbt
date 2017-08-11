@@ -41,7 +41,7 @@ lazy val root = Project(id = "elasticrypt", base = file("."))
     commonSettings,
 
     libraryDependencies ++= Seq(
-      "org.elasticsearch" % "elasticsearch" % "1.7.6" % "provided",
+      "org.elasticsearch" % "elasticsearch" % "1.7.3" % "provided",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
       "org.scoverage" %% "scalac-scoverage-runtime" % "1.0.4", // Need this for integration test
       "org.mockito" % "mockito-all" % "1.9.5"
