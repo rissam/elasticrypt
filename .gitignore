@@ -3,6 +3,7 @@ tmp/
 *.log
 .cache
 local.*
+pubring.kbx
 
 # macosx
 *.DS_Store
