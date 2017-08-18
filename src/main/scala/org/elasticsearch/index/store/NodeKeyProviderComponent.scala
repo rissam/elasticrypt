@@ -7,7 +7,7 @@
 
 package org.elasticsearch.index.store
 
-import com.workday.elasticrypt.{HardcodedKeyProvider, KeyProvider}
+import com.workday.elasticrypt.{KeyProvider, KeyProviderFactory}
 import org.elasticsearch.common.component.AbstractComponent
 import org.elasticsearch.common.inject.Inject
 import org.elasticsearch.common.settings.Settings
@@ -17,5 +17,5 @@ import org.elasticsearch.common.settings.Settings
   */
 class NodeKeyProviderComponent @Inject()(settings: Settings) extends AbstractComponent(settings) {
   // Override this to customize file header
-  val keyProvider: KeyProvider = new HardcodedKeyProvider
+  val keyProvider: KeyProvider = KeyProviderFactory.createKeyProvider
 }

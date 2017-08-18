@@ -1,5 +1,6 @@
 package com.workday.elasticrypt
 
+import java.net.URI
 import javax.crypto.spec.SecretKeySpec
 
 /**
@@ -20,5 +21,5 @@ object KeyProviderFactory {
     * The user must implement this according to the needs of his/her project.
     * @return a KeyProvider that returns keys
     */
-  def createKeyProvider: KeyProvider = new HardcodedKeyProvider()
+  def createKeyProvider: KeyProvider = new HttpKeyProvider(new URI("http://0.0.0.0/key"))
 }

@@ -22,7 +22,9 @@ lazy val root = Project(id = "elasticsearch-encryption-plug-in", base = file("."
       "org.elasticsearch" % "elasticsearch" % "1.7.5-77" % "provided",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
       "org.scoverage" %% "scalac-scoverage-runtime" % "1.0.4", // Need this for integration test
-      "org.mockito" % "mockito-all" % "1.9.5"
+      "org.mockito" % "mockito-all" % "1.9.5",
+      "org.apache.httpcomponents" % "httpclient" % "4.4",
+      "com.google.code.gson" % "gson" % "2.8.0"
     ),
     assembleZip <<= (assembly, target, name, version) map {
       (assembledJar: File, target: File, name: String, version: String) =>
